@@ -1,0 +1,12 @@
+[build]
+  command = "cd Gym-Saga-Design && pnpm install && pnpm --filter @workspace/profeandres run build"
+  publish = "Gym-Saga-Design/artifacts/profeandres/static-build"
+
+[build.environment]
+  NODE_VERSION = "24"
+  EXPO_PUBLIC_DOMAIN = "profeandres.netlify.app"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
