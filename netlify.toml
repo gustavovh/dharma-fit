@@ -1,10 +1,9 @@
 [build]
-  command = "cd Gym-Saga-Design && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/profeandres run build"
-  publish = "Gym-Saga-Design/artifacts/profeandres/static-build"
+  command = "cd Gym-Saga-Design && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/profeandres run build:web"
+  publish = "Gym-Saga-Design/artifacts/profeandres/dist"
 
 [build.environment]
   NODE_VERSION = "24"
-  EXPO_PUBLIC_DOMAIN = "profeandres.netlify.app"
 
 [[redirects]]
   from = "/*"
