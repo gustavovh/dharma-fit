@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "profeandres",
+    "slug": "profeandres",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/profeandres-logo.png",
+    "scheme": "profeandres",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/profeandres-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0B"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {},
+    "web": {
+      "favicon": "./assets/images/profeandres-logo.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://profeandres.netlify.app/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
