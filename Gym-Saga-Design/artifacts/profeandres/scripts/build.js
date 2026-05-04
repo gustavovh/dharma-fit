@@ -22,6 +22,16 @@ function findWorkspaceRoot(startDir) {
 const workspaceRoot = findWorkspaceRoot(projectRoot);
 const basePath = (process.env.BASE_PATH || "/").replace(/\/+$/, "");
 
+function getAppName() {
+  try {
+    const appJsonPath = path.resolve(projectRoot, "app.json");
+    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf-8"));
+    return appJson.expo?.name || "App Landing Page";
+  } catch {
+    return "App Landing Page";
+  }
+}
+
 function exitWithError(message) {
   console.error(message);
   if (metroProcess) {
