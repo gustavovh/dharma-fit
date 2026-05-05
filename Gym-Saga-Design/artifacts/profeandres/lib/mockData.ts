@@ -42,12 +42,39 @@ export const MOCK_ROUTINES: Routine[] = [
   {
     id: "r1",
     userId: "u1",
-    name: "Día de Piernas",
+    name: "Lunes — Pecho + Tríceps",
     dayOfWeek: 1,
     trainerId: "t1",
     exercises: [
-      { id: "re1", exerciseId: "e1", sets: 4, reps: 10, weightKg: 100, restSeconds: 90, completed: false, notes: "Bajar profundo" },
-      { id: "re2", exerciseId: "e8", sets: 3, reps: 12, weightKg: 40, restSeconds: 60, completed: false },
+      { 
+        id: "re1", 
+        exerciseId: "e1", 
+        name: "Press banca",
+        sets: 4, 
+        reps: "8-10", 
+        weightKg: "70", 
+        restSeconds: 90, 
+        completed: true, 
+        notes: ["Mantener retracción escapular", "Bajar controlado"],
+        media: { type: "image", url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop" }
+      },
+      { 
+        id: "re2", 
+        exerciseId: "e2", 
+        name: "EXTENSION DE PIERNA",
+        sets: 3, 
+        reps: "12 + dropset de 8", 
+        weightKg: "32, 36, 41", 
+        restSeconds: 60, 
+        completed: false,
+        notes: [
+          "Mantener 1 seg arriba",
+          "Última parte sin descanso (bajar peso)",
+          "Descanso: 60 seg",
+          "En la descarga sin descanso"
+        ],
+        media: { type: "image", url: "https://images.unsplash.com/photo-1590239926044-245803274294?q=80&w=400&auto=format&fit=crop" }
+      },
     ],
   },
   {

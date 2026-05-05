@@ -9,7 +9,9 @@ import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { getRoutinesForUser } from "@/lib/storage";
-import { Routine } from "@/types";
+import { ExerciseCard } from "@/components/ExerciseCard";
+import { ExerciseDetail } from "@/components/ExerciseDetail";
+import { Routine, RoutineExercise } from "@/types";
 
 const CURRENT_USER_ID = "u1";
 
@@ -18,6 +20,8 @@ export default function Training() {
   const insets = useSafeAreaInsets();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [activeRoutine, setActiveRoutine] = useState<Routine | undefined>();
+  const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
+  const [detailVisible, setDetailVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -37,6 +41,15 @@ export default function Training() {
       ),
     };
     setActiveRoutine(updated);
+    // If detail is open, update the selected exercise state too
+    if (selectedExercise?.id === exerciseId) {
+      setSelectedExercise(updated.exercises.find(ex => ex.id === exerciseId) || null);
+    }
+  };
+
+  const handleOpenDetail = (exercise: RoutineExercise) => {
+    setSelectedExercise(exercise);
+    setDetailVisible(true);
   };
 
   return (
@@ -50,34 +63,42 @@ export default function Training() {
         contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <SectionHeader title="Rutina de hoy" />
+        <View style={styles.dayPicker}>
+          {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, index) => {
+            const dayNum = index + 1;
+            const isActive = activeRoutine?.dayOfWeek === dayNum;
+            return (
+              <Pressable
+                key={day}
+                onPress={() => {
+                  const found = routines.find(r => r.dayOfWeek === dayNum);
+                  if (found) setActiveRoutine(found);
+                }}
+                style={[
+                  styles.dayButton,
+                  { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : colors.border }
+                ]}
+              >
+                <Text style={[styles.dayText, { color: isActive ? colors.primaryForeground : colors.mutedForeground }]}>
+                  {day}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <SectionHeader title={activeRoutine?.name || "Rutina"} />
         
         {activeRoutine?.exercises.map((exercise, index) => (
           <Animated.View
             key={exercise.id}
             entering={FadeInRight.delay(index * 100).duration(400)}
           >
-            <Pressable onPress={() => toggleExercise(exercise.id)}>
-              <Card style={[styles.exerciseCard, exercise.completed && { opacity: 0.6, borderColor: colors.primary }]}>
-                <View style={styles.exerciseHeader}>
-                  <View style={styles.exerciseInfo}>
-                    <Text style={[styles.exerciseName, { color: colors.foreground }]}>
-                      {exercise.notes || `Ejercicio ${index + 1}`}
-                    </Text>
-                    <Text style={[styles.exerciseMeta, { color: colors.mutedForeground }]}>
-                      {exercise.sets} series x {exercise.reps} reps • {exercise.weightKg}kg
-                    </Text>
-                  </View>
-                  <View style={[
-                    styles.checkCircle,
-                    { borderColor: exercise.completed ? colors.primary : colors.border },
-                    exercise.completed && { backgroundColor: colors.primary }
-                  ]}>
-                    {exercise.completed && <Feather name="check" size={16} color={colors.primaryForeground} />}
-                  </View>
-                </View>
-              </Card>
-            </Pressable>
+            <ExerciseCard
+              routineExercise={exercise}
+              onToggle={() => toggleExercise(exercise.id)}
+              onDemo={() => handleOpenDetail(exercise)}
+            />
           </Animated.View>
         ))}
 
@@ -95,6 +116,13 @@ export default function Training() {
           ))}
         </ScrollView>
       </ScrollView>
+
+      <ExerciseDetail
+        visible={detailVisible}
+        onClose={() => setDetailVisible(false)}
+        exercise={selectedExercise}
+        onToggleComplete={() => selectedExercise && toggleExercise(selectedExercise.id)}
+      />
 
       <View style={[styles.fabContainer, { bottom: 20 }]}>
         <Pressable style={[styles.fab, { backgroundColor: colors.primary }]}>
@@ -141,4 +169,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   fabText: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  dayPicker: { flexDirection: "row", gap: 8, marginBottom: 24 },
+  dayButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  dayText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
 });

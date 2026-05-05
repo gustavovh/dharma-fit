@@ -17,25 +17,31 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
   const re = routineExercise;
 
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={onDemo}
+      style={({ pressed }) => [
         styles.container,
         {
           backgroundColor: colors.card,
           borderColor: re.completed ? colors.primary : colors.border,
           borderRadius: colors.radius,
+          opacity: pressed ? 0.8 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
     >
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-            {exercise?.name || "Ejercicio"}
+            {re.name || exercise?.name || "Ejercicio"}
           </Text>
-          {exercise?.muscleGroup && (
-            <Text style={[styles.muscle, { color: colors.mutedForeground }]}>
-              {exercise.muscleGroup}
-            </Text>
+          {(re.media || exercise?.videoUrl) && (
+             <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+               <Feather name="image" size={12} color={colors.primary} />
+               <Text style={[styles.muscle, { color: colors.primary, marginTop: 0 }]}>
+                 Ver guía visual
+               </Text>
+             </View>
           )}
         </View>
         <Pressable
@@ -67,17 +73,18 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
         )}
       </View>
 
-      {re.notes && (
-        <Text style={[styles.notes, { color: colors.mutedForeground }]}>
-          “{re.notes}”
-        </Text>
+      {re.notes && re.notes.length > 0 && (
+        <View style={{ marginTop: 12 }}>
+          <Text style={[styles.notes, { color: colors.mutedForeground }]} numberOfLines={1}>
+            “{re.notes[0]}...”
+          </Text>
+        </View>
       )}
 
-      <Pressable onPress={onDemo} style={styles.demoBtn}>
-        <Feather name="play-circle" size={14} color={colors.primary} />
-        <Text style={[styles.demoText, { color: colors.primary }]}>Ver demo</Text>
-      </Pressable>
-    </View>
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -99,13 +106,12 @@ function Meta({
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, borderWidth: 1, marginBottom: 12 },
+  container: { padding: 16, borderWidth: 1, marginBottom: 12, position: "relative" },
   row: { flexDirection: "row", alignItems: "center" },
   name: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
   muscle: {
     fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    marginTop: 2,
+    fontFamily: "Inter_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
@@ -124,8 +130,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     fontStyle: "italic",
-    marginTop: 12,
   },
-  demoBtn: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 12 },
-  demoText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  footer: {
+    position: "absolute",
+    right: 8,
+    bottom: 8,
+  },
 });

@@ -30,12 +30,17 @@ export interface Exercise {
 export interface RoutineExercise {
   id: string;
   exerciseId: string;
+  name?: string;
   sets: number;
-  reps: number;
-  weightKg?: number;
+  reps: string; // Changed to string to support "12 + dropset of 8"
+  weightKg?: string; // Changed to string to support "32 / 36 / 41 kg"
   restSeconds?: number;
-  notes?: string;
+  notes?: string[];
   completed: boolean;
+  media?: {
+    type: "image" | "video";
+    url: string;
+  };
 }
 
 export interface Routine {
