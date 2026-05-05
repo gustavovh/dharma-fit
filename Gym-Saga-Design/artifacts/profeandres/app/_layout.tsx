@@ -16,7 +16,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { RoleProvider } from "@/contexts/RoleContext";
 import { initStorage } from "@/lib/storage";
 
 SplashScreen.preventAutoHideAsync();
@@ -35,20 +34,9 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(user)" options={{ headerShown: false }} />
-      <Stack.Screen name="(trainer)" options={{ headerShown: false }} />
-      <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="role-switcher"
-        options={{ presentation: "modal", title: "Cambiar de rol" }}
-      />
-      <Stack.Screen name="payments" options={{ title: "Pagos" }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ title: "Notificaciones" }} />
       <Stack.Screen name="notes" options={{ title: "Observaciones" }} />
-      <Stack.Screen name="admin-attendance" options={{ title: "Asistencia" }} />
-      <Stack.Screen name="admin-reports" options={{ title: "Reportes" }} />
-      <Stack.Screen name="admin-profile" options={{ title: "Perfil" }} />
-      <Stack.Screen name="client-detail/[id]" options={{ title: "Cliente" }} />
       <Stack.Screen
         name="exercise-detail/[id]"
         options={{ presentation: "modal", title: "Ejercicio" }}
@@ -81,16 +69,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <RoleProvider>
-            <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
-              <KeyboardProvider>
-                <View style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
-                  <StatusBar style="light" />
-                  <RootLayoutNav />
-                </View>
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </RoleProvider>
+          <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
+            <KeyboardProvider>
+              <View style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
+                <StatusBar style="light" />
+                <RootLayoutNav />
+              </View>
+            </KeyboardProvider>
+          </GestureHandlerRootView>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

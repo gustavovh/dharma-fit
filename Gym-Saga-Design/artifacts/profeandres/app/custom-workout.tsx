@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { useColors } from "@/hooks/useColors";
-import { RoleHeader } from "@/components/RoleHeader";
+import { AppHeader } from "@/components/RoleHeader";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { SelectField } from "@/components/SelectField";
 import { Card } from "@/components/Card";
 import { BottomSheet } from "@/components/BottomSheet";
 import { SectionHeader } from "@/components/SectionHeader";
-import { MOCK_EXERCISES, MOCK_USERS } from "@/lib/mockData";
+import { MOCK_EXERCISES } from "@/lib/mockData";
 import { Exercise } from "@/types";
 
 const DAYS = [
@@ -31,16 +32,14 @@ interface DraftExercise {
   weightKg: number;
 }
 
-export default function CreateRoutine() {
+export default function CustomWorkout() {
   const colors = useColors();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
-  const [client, setClient] = useState<string | undefined>();
   const [day, setDay] = useState<string | undefined>("1");
   const [drafts, setDrafts] = useState<DraftExercise[]>([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
-
-  const userOptions = MOCK_USERS.map((u) => ({ label: u.name, value: u.id }));
 
   const addExercise = (e: Exercise) => {
     setDrafts((d) => [...d, { exercise: e, sets: e.defaultSets, reps: e.defaultReps, weightKg: 0 }]);
@@ -52,35 +51,38 @@ export default function CreateRoutine() {
   };
 
   const handleSave = () => {
-    if (!name || !client || drafts.length === 0) {
-      Alert.alert("Faltan datos", "Completa nombre, cliente y al menos un ejercicio.");
+    if (!name || drafts.length === 0) {
+      Alert.alert("Faltan datos", "Completa el nombre y agrega al menos un ejercicio.");
       return;
     }
-    Alert.alert("Rutina guardada", `${name} para ${MOCK_USERS.find((u) => u.id === client)?.name}`);
-    setName("");
-    setDrafts([]);
+    Alert.alert("Éxito", "Tu rutina personalizada ha sido guardada.");
+    router.back();
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <RoleHeader greeting="CREAR RUTINA" title="Nueva rutina" subtitle="Diseña una sesión personalizada" />
+      <AppHeader 
+        greeting="CREADOR DE RUTINAS" 
+        title="Personalizar" 
+        subtitle="Crea tu propia sesión de entrenamiento" 
+      />
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 200 + (Platform.OS === "web" ? 0 : insets.bottom) }}
+        showsVerticalScrollIndicator={false}
       >
-        <Input label="Nombre de la rutina" value={name} onChangeText={setName} placeholder="Ej: Día de empuje" />
-        <SelectField label="Cliente" value={client} options={userOptions} onSelect={setClient} placeholder="Selecciona…" />
+        <Input label="Nombre de la rutina" value={name} onChangeText={setName} placeholder="Ej: Mi rutina de pecho" />
         <SelectField
-          label="Día de la semana"
+          label="Día sugerido"
           value={day}
           options={DAYS.map((d) => ({ label: d.l, value: d.v }))}
           onSelect={setDay}
         />
 
-        <SectionHeader title="Ejercicios" />
+        <SectionHeader title="Ejercicios Seleccionados" />
         {drafts.length === 0 ? (
           <Card>
-            <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_400Regular", fontSize: 13 }}>
-              Aún no hay ejercicios. Toca el botón para agregar desde la biblioteca.
+            <Text style={{ color: colors.mutedForeground, textAlign: "center", paddingVertical: 10 }}>
+              No has añadido ejercicios aún.
             </Text>
           </Card>
         ) : (
@@ -107,23 +109,23 @@ export default function CreateRoutine() {
               <View style={{ flexDirection: "row", gap: 8 }}>
                 <Field label="Sets" value={String(d.sets)} colors={colors} />
                 <Field label="Reps" value={String(d.reps)} colors={colors} />
-                <Field label="Peso kg" value={String(d.weightKg)} colors={colors} />
+                <Field label="Peso (kg)" value={String(d.weightKg)} colors={colors} />
               </View>
             </View>
           ))
         )}
 
         <Button
-          title="+ Agregar ejercicio"
+          title="+ Añadir Ejercicio"
           variant="secondary"
           onPress={() => setLibraryOpen(true)}
           style={{ marginTop: 12 }}
         />
 
-        <Button title="Guardar rutina" onPress={handleSave} style={{ marginTop: 16 }} />
+        <Button title="Guardar Rutina" onPress={handleSave} style={{ marginTop: 24 }} />
       </ScrollView>
 
-      <BottomSheet visible={libraryOpen} onClose={() => setLibraryOpen(false)} title="Biblioteca de ejercicios">
+      <BottomSheet visible={libraryOpen} onClose={() => setLibraryOpen(false)} title="Biblioteca de Ejercicios">
         <ScrollView style={{ maxHeight: 400 }}>
           {MOCK_EXERCISES.map((e) => (
             <Pressable
@@ -135,8 +137,8 @@ export default function CreateRoutine() {
                 <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
                   {e.name}
                 </Text>
-                <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
-                  {e.muscleGroup} · {e.defaultSets}×{e.defaultReps}
+                <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 2 }}>
+                  {e.muscleGroup}
                 </Text>
               </View>
               <Feather name="plus-circle" size={20} color={colors.primary} />
@@ -148,13 +150,13 @@ export default function CreateRoutine() {
   );
 }
 
-function Field({ label, value, colors }: { label: string; value: string; colors: ReturnType<typeof useColors> }) {
+function Field({ label, value, colors }: any) {
   return (
     <View style={[styles.field, { backgroundColor: colors.input, borderColor: colors.border }]}>
       <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_500Medium", fontSize: 10, textTransform: "uppercase" }}>
         {label}
       </Text>
-      <Text style={{ color: colors.foreground, fontFamily: "Inter_700Bold", fontSize: 16, fontVariant: ["tabular-nums"], marginTop: 2 }}>
+      <Text style={{ color: colors.foreground, fontFamily: "Inter_700Bold", fontSize: 16, marginTop: 2 }}>
         {value}
       </Text>
     </View>

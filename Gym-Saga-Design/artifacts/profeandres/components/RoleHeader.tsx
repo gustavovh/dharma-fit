@@ -16,7 +16,7 @@ interface RoleHeaderProps {
   showLogo?: boolean;
 }
 
-export function RoleHeader({
+export function AppHeader({
   greeting,
   title,
   subtitle,
@@ -32,16 +32,13 @@ export function RoleHeader({
   return (
     <View style={{ paddingTop: topPad + 8 }}>
       {showLogo && (
-        <Pressable
-          onPress={() => router.push("/role-switcher")}
-          style={styles.logoRow}
-        >
+        <View style={styles.logoRow}>
           <Image
             source={require("../assets/images/profeandres-logo.png")}
             style={styles.logo}
             contentFit="contain"
           />
-        </Pressable>
+        </View>
       )}
       <View style={styles.container}>
         <View style={styles.left}>

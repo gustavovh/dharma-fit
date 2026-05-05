@@ -1,31 +1,12 @@
-export type Role = "user" | "trainer" | "admin";
-
 export interface User {
   id: string;
   name: string;
-  role: "user";
   avatar?: string;
   planId?: string;
   planStatus: "activa" | "por_vencer" | "vencida";
   planExpiry?: string;
-  trainerId?: string;
   weightKg?: number;
   bodyFatPct?: number;
-}
-
-export interface Trainer {
-  id: string;
-  name: string;
-  role: "trainer";
-  avatar?: string;
-  specialty?: string;
-}
-
-export interface Admin {
-  id: string;
-  name: string;
-  role: "admin";
-  avatar?: string;
 }
 
 export interface Plan {
