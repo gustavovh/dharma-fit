@@ -1,29 +1,31 @@
-[build]
+﻿[build]
   command = "pnpm build:web"
-  publish = ".expo/web"
+  publish = "dist"
 
 [[headers]]
   for = "/*.ttf"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
 
 [[headers]]
-  for = "/*.woff"
+  for = "/assets/**/*.ttf"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
 
 [[headers]]
-  for = "/*.woff2"
+  for = "/assets/**/*.woff"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
 
 [[headers]]
-  for = "/*.js"
+  for = "/assets/**/*.woff2"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_expo/static/**"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 [[redirects]]
   from = "/*"
