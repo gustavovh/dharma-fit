@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { LinearGradient } from "expo-linear-gradient";
 import { Avatar } from "./Avatar";
 
 interface RoleHeaderProps {
@@ -33,11 +34,17 @@ export function AppHeader({
     <View style={{ paddingTop: topPad + 8 }}>
       {showLogo && (
         <View style={styles.logoRow}>
-          <Image
-            source={require("../assets/images/profeandres-logo.png")}
-            style={styles.logo}
-            contentFit="contain"
-          />
+          <LinearGradient colors={colors.gradientHero} style={[styles.brandPill, { borderColor: colors.border }]}> 
+            <Image
+              source={require("../assets/images/profeandres-logo.png")}
+              style={styles.logo}
+              contentFit="contain"
+            />
+            <View>
+              <Text style={[styles.brandLabel, { color: colors.primary }]}>PERFORMANCE CLUB</Text>
+              <Text style={[styles.brandTitle, { color: colors.foreground }]}>DharmaFit</Text>
+            </View>
+          </LinearGradient>
         </View>
       )}
       <View style={styles.container}>
@@ -58,7 +65,7 @@ export function AppHeader({
           {showBell && (
             <Pressable
               onPress={() => router.push("/notifications")}
-              style={[styles.bellBtn, { backgroundColor: colors.secondary }]}
+              style={[styles.bellBtn, { backgroundColor: colors.secondary, borderColor: colors.border, shadowColor: colors.accent }]}
             >
               <Feather name="bell" size={20} color={colors.foreground} />
               <View style={[styles.dot, { backgroundColor: colors.primary }]} />
@@ -77,7 +84,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     alignItems: "flex-start",
   },
-  logo: { width: 56, height: 56, borderRadius: 8 },
+  brandPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  logo: { width: 48, height: 48, borderRadius: 12 },
+  brandLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.3,
+  },
+  brandTitle: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    marginTop: 2,
+  },
   container: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -102,6 +128,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
   },
   dot: {
     position: "absolute",

@@ -6,6 +6,8 @@ import { useColors } from "@/hooks/useColors";
 import { RoutineExercise } from "@/types";
 import { BottomSheet } from "./BottomSheet";
 import { Button } from "./Button";
+import { Card } from "./Card";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface Props {
   visible: boolean;
@@ -22,50 +24,74 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
   return (
     <BottomSheet visible={visible} onClose={onClose} title={exercise.name}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Visual Media */}
         <View style={styles.mediaContainer}>
           {exercise.media?.url ? (
-            <Image
-              source={{ uri: exercise.media.url }}
-              style={[styles.media, { borderRadius: colors.radius }]}
-              contentFit="cover"
-              transition={200}
-            />
+            <View style={{ borderRadius: colors.radius, overflow: "hidden" }}>
+              <Image
+                source={{ uri: exercise.media.url }}
+                style={[styles.media, { borderRadius: colors.radius }]}
+                contentFit="cover"
+                transition={200}
+              />
+              <LinearGradient colors={["transparent", colors.overlay]} style={styles.mediaOverlay} />
+              <View style={styles.mediaBadge}>
+                <Feather name="play-circle" size={18} color={colors.primary} />
+                <Text style={[styles.mediaBadgeText, { color: colors.foreground }]}>Demostracion</Text>
+              </View>
+            </View>
           ) : (
-            <View style={[styles.mediaPlaceholder, { backgroundColor: colors.muted, borderRadius: colors.radius }]}>
+            <LinearGradient colors={colors.gradientCard} style={[styles.mediaPlaceholder, { borderRadius: colors.radius, borderColor: colors.border }]}> 
               <Feather name="image" size={48} color={colors.mutedForeground} />
               <Text style={{ color: colors.mutedForeground, marginTop: 8 }}>Sin guía visual</Text>
-            </View>
+            </LinearGradient>
           )}
         </View>
 
-        {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <StatBox icon="repeat" label="Series" value={exercise.sets.toString()} colors={colors} />
           <StatBox icon="activity" label="Reps" value={exercise.reps} colors={colors} />
-          <StatBox icon="trending-up" label="Peso" value={`${exercise.weightKg} kg`} colors={colors} />
+          <StatBox icon="trending-up" label="Peso" value={exercise.weightKg ? `${exercise.weightKg} kg` : "Libre"} colors={colors} />
           <StatBox icon="clock" label="Descanso" value={`${exercise.restSeconds || 60}s`} colors={colors} />
         </View>
 
-        {/* Coach Notes */}
+        <Card style={styles.executionCard}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Ejecucion guiada</Text>
+          <Step index={1} text="Ajusta la postura y estabiliza el tronco antes de cada repeticion." colors={colors} />
+          <Step index={2} text="Mantén una cadencia controlada en la fase de subida y bajada." colors={colors} />
+          <Step index={3} text="Exhala al esfuerzo y evita perder la tecnica por velocidad." colors={colors} />
+        </Card>
+
         {exercise.notes && exercise.notes.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Feather name="message-circle" size={18} color={colors.primary} />
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Indicaciones del Coach</Text>
             </View>
-            <View style={[styles.notesContainer, { backgroundColor: colors.muted + "40", borderRadius: colors.radius }]}>
+            <Card style={styles.notesCard}>
               {exercise.notes.map((note, index) => (
                 <View key={index} style={styles.noteRow}>
-                   <Text style={styles.noteIcon}>{note.includes("Descanso") ? "⏱️" : "👉"}</Text>
+                   <View style={[styles.noteDot, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
+                     <Feather name={note.includes("Descanso") ? "clock" : "check"} size={12} color={colors.primary} />
+                   </View>
                    <Text style={[styles.noteText, { color: colors.foreground }]}>{note}</Text>
                 </View>
               ))}
-            </View>
+            </Card>
           </View>
         )}
 
-        {/* Completion Toggle */}
+        <View style={styles.tipRow}>
+          {[
+            "Controla la bajada",
+            "No arquees la espalda",
+            "Activa el core",
+          ].map((tip) => (
+            <View key={tip} style={[styles.tipChip, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+              <Text style={[styles.tipText, { color: colors.secondaryForeground }]}>{tip}</Text>
+            </View>
+          ))}
+        </View>
+
         <View style={{ marginTop: 24 }}>
           <Button
             title={exercise.completed ? "Marcado como Completado" : "Marcar como Completado"}
@@ -81,10 +107,21 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
 
 function StatBox({ icon, label, value, colors }: { icon: keyof typeof Feather.glyphMap, label: string, value: string, colors: any }) {
   return (
-    <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <LinearGradient colors={colors.gradientCard} style={[styles.statBox, { borderColor: colors.border }]}> 
       <Feather name={icon} size={16} color={colors.primary} />
       <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text>
       <Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text>
+    </LinearGradient>
+  );
+}
+
+function Step({ index, text, colors }: { index: number; text: string; colors: ReturnType<typeof useColors> }) {
+  return (
+    <View style={styles.stepRow}>
+      <View style={[styles.stepIndex, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+        <Text style={[styles.stepIndexText, { color: colors.primary }]}>{index}</Text>
+      </View>
+      <Text style={[styles.stepText, { color: colors.foreground }]}>{text}</Text>
     </View>
   );
 }
@@ -99,11 +136,27 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  mediaOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  mediaBadge: {
+    position: "absolute",
+    left: 16,
+    bottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  mediaBadgeText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+  },
   mediaPlaceholder: {
     width: "100%",
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
   statsGrid: {
     flexDirection: "row",
@@ -115,7 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: "45%",
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     alignItems: "center",
     gap: 4,
@@ -131,6 +184,9 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
   },
+  executionCard: {
+    marginBottom: 20,
+  },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -141,8 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_700Bold",
   },
-  notesContainer: {
-    padding: 16,
+  notesCard: {
     gap: 12,
   },
   noteRow: {
@@ -150,13 +205,57 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: "flex-start",
   },
-  noteIcon: {
-    fontSize: 16,
+  noteDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
   noteText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
     flex: 1,
     lineHeight: 20,
+  },
+  stepRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginTop: 14,
+  },
+  stepIndex: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  stepIndexText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 22,
+  },
+  tipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  tipChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  tipText: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
   },
 });

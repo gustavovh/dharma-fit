@@ -4,6 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, run
 import { useColors } from "@/hooks/useColors";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface BottomSheetProps {
   visible: boolean;
@@ -34,30 +35,38 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <Animated.View style={[styles.backdrop, { backgroundColor: "rgba(0,0,0,0.5)" }, { opacity }]}>
+        <Animated.View style={[styles.backdrop, { backgroundColor: colors.overlay }, { opacity }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         </Animated.View>
         <Animated.View
           style={[
             styles.sheet,
-            { backgroundColor: colors.card, borderTopLeftRadius: colors.radius, borderTopRightRadius: colors.radius, paddingBottom: Math.max(insets.bottom, 24) },
+            {
+              borderTopLeftRadius: colors.radius + 8,
+              borderTopRightRadius: colors.radius + 8,
+              paddingBottom: Math.max(insets.bottom, 24),
+              borderColor: colors.border,
+              shadowColor: colors.shadow,
+            },
             { transform: [{ translateY }] }
           ]}
         >
-          <View style={styles.handleContainer}>
-            <View style={[styles.handle, { backgroundColor: colors.border }]} />
-          </View>
-          {title && (
-            <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
-              <Pressable onPress={onClose}>
-                <Feather name="x" size={24} color={colors.mutedForeground} />
-              </Pressable>
+          <LinearGradient colors={colors.gradientCard} style={[styles.sheetFill, { borderTopLeftRadius: colors.radius + 8, borderTopRightRadius: colors.radius + 8 }]}> 
+            <View style={styles.handleContainer}>
+              <View style={[styles.handle, { backgroundColor: colors.ringTrack }]} />
             </View>
-          )}
-          <View style={styles.content}>
-            {children}
-          </View>
+            {title && (
+              <View style={styles.header}>
+                <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
+                <Pressable onPress={onClose} style={[styles.closeButton, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+                  <Feather name="x" size={18} color={colors.mutedForeground} />
+                </Pressable>
+              </View>
+            )}
+            <View style={styles.content}>
+              {children}
+            </View>
+          </LinearGradient>
         </Animated.View>
       </View>
     </Modal>
@@ -75,6 +84,13 @@ const styles = StyleSheet.create({
   sheet: {
     maxHeight: "80%",
     minHeight: 200,
+    borderWidth: 1,
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -8 },
+  },
+  sheetFill: {
+    overflow: "hidden",
   },
   handleContainer: {
     alignItems: "center",
@@ -95,6 +111,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
+  },
+  closeButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
   content: {
     paddingHorizontal: 24,

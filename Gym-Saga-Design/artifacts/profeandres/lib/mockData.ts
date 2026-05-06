@@ -84,8 +84,8 @@ export const MOCK_ROUTINES: Routine[] = [
     dayOfWeek: 2,
     trainerId: "t1",
     exercises: [
-      { id: "re3", exerciseId: "e2", sets: 4, reps: 10, weightKg: 80, restSeconds: 90, completed: false },
-      { id: "re4", exerciseId: "e7", sets: 3, reps: 15, weightKg: 20, restSeconds: 60, completed: false },
+      { id: "re3", exerciseId: "e2", sets: 4, reps: "10", weightKg: "80", restSeconds: 90, completed: false },
+      { id: "re4", exerciseId: "e7", sets: 3, reps: "15", weightKg: "20", restSeconds: 60, completed: false },
     ],
   }
 ];

@@ -19,10 +19,32 @@ export function ProgressRing({ progress, size = 120, strokeWidth = 10, color, ce
   const ringColor = color || colors.primary;
 
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+    <View
+      style={[
+        styles.container,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          shadowColor: ringColor,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.innerGlow,
+          {
+            width: size - strokeWidth * 2.5,
+            height: size - strokeWidth * 2.5,
+            borderRadius: (size - strokeWidth * 2.5) / 2,
+            backgroundColor: colors.cardSecondary,
+            borderColor: colors.border,
+          },
+        ]}
+      />
       <Svg width={size} height={size}>
         <Circle
-          stroke={colors.secondary}
+          stroke={colors.ringTrack}
           fill="none"
           cx={size / 2}
           cy={size / 2}
@@ -54,3 +76,17 @@ export function ProgressRing({ progress, size = 120, strokeWidth = 10, color, ce
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+    shadowOpacity: 0.25,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
+  },
+  innerGlow: {
+    position: "absolute",
+    borderWidth: 1,
+  },
+});

@@ -1,26 +1,53 @@
 import { Tabs } from "expo-router";
 import React from "react";
 import { Feather } from "@expo/vector-icons";
+import { View } from "react-native";
 import { useColors } from "@/hooks/useColors";
 
 export default function TabLayout() {
   const colors = useColors();
+
+  const renderIcon = (name: keyof typeof Feather.glyphMap) =>
+    ({ color, size, focused }: { color: string; size: number; focused: boolean }) => (
+      <View
+        style={{
+          minWidth: 44,
+          height: 32,
+          borderRadius: 16,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: focused ? colors.secondary : "transparent",
+          shadowColor: focused ? colors.primary : "transparent",
+          shadowOpacity: focused ? 0.35 : 0,
+          shadowRadius: focused ? 14 : 0,
+          shadowOffset: { width: 0, height: 8 },
+        }}
+      >
+        <Feather name={name} size={size} color={color} />
+      </View>
+    );
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.card,
+          backgroundColor: "rgba(7, 12, 22, 0.96)",
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
+          height: 78,
+          paddingBottom: 10,
+          paddingTop: 10,
+          borderTopWidth: 1,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
         tabBarLabelStyle: {
           fontFamily: "Inter_500Medium",
-          fontSize: 12,
+          fontSize: 11,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
         },
       }}
     >
@@ -28,45 +55,35 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Inicio",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
-          ),
+          tabBarIcon: renderIcon("home"),
         }}
       />
       <Tabs.Screen
         name="training"
         options={{
           title: "Entrenar",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="zap" size={size} color={color} />
-          ),
+          tabBarIcon: renderIcon("zap"),
         }}
       />
       <Tabs.Screen
         name="progress"
         options={{
           title: "Progreso",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="trending-up" size={size} color={color} />
-          ),
+          tabBarIcon: renderIcon("trending-up"),
         }}
       />
       <Tabs.Screen
         name="nutrition"
         options={{
           title: "Nutrición",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="coffee" size={size} color={color} />
-          ),
+          tabBarIcon: renderIcon("coffee"),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Perfil",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
-          ),
+          tabBarIcon: renderIcon("user"),
         }}
       />
     </Tabs>

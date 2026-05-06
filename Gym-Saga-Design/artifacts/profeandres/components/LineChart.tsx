@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import Svg, { Path, Circle } from "react-native-svg";
+import Svg, { Path, Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
 
 interface LineChartProps {
@@ -12,7 +12,9 @@ interface LineChartProps {
 
 export function LineChart({ data, width, height, color }: LineChartProps) {
   const colors = useColors();
-  if (!data || data.length === 0) return <View style={{ width, height, backgroundColor: colors.secondary, borderRadius: colors.radius }} />;
+  if (!data || data.length === 0) {
+    return <View style={{ width, height, backgroundColor: colors.secondary, borderRadius: colors.radius }} />;
+  }
 
   const strokeColor = color || colors.primary;
   
@@ -33,12 +35,33 @@ export function LineChart({ data, width, height, color }: LineChartProps) {
     y: padding + innerHeight - ((d.y - minY) / rangeY) * innerHeight,
   }));
 
-  const path = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(" ");
+  const lastPoint = points[points.length - 1];
+
+  const path = points.reduce((acc, point, index, list) => {
+    if (index === 0) {
+      return `M ${point.x} ${point.y}`;
+    }
+
+    const previous = list[index - 1];
+    const midpointX = (previous.x + point.x) / 2;
+    const midpointY = (previous.y + point.y) / 2;
+
+    return `${acc} Q ${previous.x} ${previous.y} ${midpointX} ${midpointY}`;
+  }, "") + ` T ${lastPoint.x} ${lastPoint.y}`;
+
+  const areaPath = `${path} L ${lastPoint.x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
     <View style={{ width, height }}>
       <Svg width={width} height={height}>
-        <Path d={path} fill="none" stroke={strokeColor} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        <Defs>
+          <SvgLinearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={strokeColor} stopOpacity={0.35} />
+            <Stop offset="1" stopColor={strokeColor} stopOpacity={0} />
+          </SvgLinearGradient>
+        </Defs>
+        <Path d={areaPath} fill="url(#chartFill)" />
+        <Path d={path} fill="none" stroke={strokeColor} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
         {points.map((p, i) => (
           <Circle key={i} cx={p.x} cy={p.y} r={4} fill={colors.background} stroke={strokeColor} strokeWidth={2} />
         ))}

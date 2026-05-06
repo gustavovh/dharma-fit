@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInRight } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { useColors } from "@/hooks/useColors";
 import { AppHeader } from "@/components/RoleHeader";
@@ -11,13 +11,13 @@ import { Card } from "@/components/Card";
 import { getRoutinesForUser } from "@/lib/storage";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
+import { Button } from "@/components/Button";
 import { Routine, RoutineExercise } from "@/types";
 
 const CURRENT_USER_ID = "u1";
 
 export default function Training() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [activeRoutine, setActiveRoutine] = useState<Routine | undefined>();
   const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
@@ -52,8 +52,11 @@ export default function Training() {
     setDetailVisible(true);
   };
 
+  const completedExercises = activeRoutine?.exercises.filter((exercise) => exercise.completed).length || 0;
+  const totalExercises = activeRoutine?.exercises.length || 0;
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <LinearGradient colors={colors.gradientBackground} style={styles.screen}>
       <AppHeader
         title="Entrenamiento"
         subtitle={activeRoutine?.name || "Cargando..."}
@@ -63,6 +66,26 @@ export default function Training() {
         contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
+        <LinearGradient colors={colors.gradientHero} style={[styles.routineHero, { borderColor: colors.border }]}> 
+          <View style={styles.heroHeader}>
+            <View>
+              <Text style={[styles.heroKicker, { color: colors.primary }]}>RUTINA DEL DIA</Text>
+              <Text style={[styles.heroTitle, { color: colors.foreground }]}>{activeRoutine?.name || "Tu próxima sesión"}</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.mutedForeground }]}>Progresión inteligente con foco en ejecución y recuperación.</Text>
+            </View>
+            <View style={[styles.heroBadge, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+              <Text style={[styles.heroBadgeValue, { color: colors.foreground }]}>{completedExercises}/{totalExercises}</Text>
+              <Text style={[styles.heroBadgeLabel, { color: colors.mutedForeground }]}>completados</Text>
+            </View>
+          </View>
+
+          <View style={styles.heroMetaRow}>
+            <MetaPill icon="clock" label={`${Math.max(totalExercises * 8, 30)} min`} colors={colors} />
+            <MetaPill icon="zap" label="Intermedio" colors={colors} />
+            <MetaPill icon="activity" label={`${totalExercises} ejercicios`} colors={colors} />
+          </View>
+        </LinearGradient>
+
         <View style={styles.dayPicker}>
           {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, index) => {
             const dayNum = index + 1;
@@ -76,10 +99,10 @@ export default function Training() {
                 }}
                 style={[
                   styles.dayButton,
-                  { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : colors.border }
+                  { backgroundColor: isActive ? colors.secondary : colors.card, borderColor: isActive ? colors.primary : colors.border, shadowColor: isActive ? colors.primary : colors.shadow }
                 ]}
               >
-                <Text style={[styles.dayText, { color: isActive ? colors.primaryForeground : colors.mutedForeground }]}>
+                <Text style={[styles.dayText, { color: isActive ? colors.primary : colors.mutedForeground }]}> 
                   {day}
                 </Text>
               </Pressable>
@@ -87,7 +110,7 @@ export default function Training() {
           })}
         </View>
 
-        <SectionHeader title={activeRoutine?.name || "Rutina"} />
+        <SectionHeader title="Ejercicios" actionLabel="Rutinas" onAction={() => setActiveRoutine(routines[0])} />
         
         {activeRoutine?.exercises.map((exercise, index) => (
           <Animated.View
@@ -106,10 +129,13 @@ export default function Training() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
           {routines.filter(r => r.id !== activeRoutine?.id).map((r) => (
             <Pressable key={r.id} onPress={() => setActiveRoutine(r)}>
-              <Card style={styles.miniCard}>
-                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>{r.name}</Text>
-                <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 4 }}>
+              <Card style={styles.miniCard} variant="gold">
+                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold", fontSize: 16 }}>{r.name}</Text>
+                <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 6 }}>
                   {r.exercises.length} ejercicios
+                </Text>
+                <Text style={{ color: colors.primary, fontSize: 12, marginTop: 14, fontFamily: "Inter_700Bold", textTransform: "uppercase", letterSpacing: 0.6 }}>
+                  Cambiar rutina
                 </Text>
               </Card>
             </Pressable>
@@ -124,59 +150,101 @@ export default function Training() {
         onToggleComplete={() => selectedExercise && toggleExercise(selectedExercise.id)}
       />
 
-      <View style={[styles.fabContainer, { bottom: 20 }]}>
-        <Pressable style={[styles.fab, { backgroundColor: colors.primary }]}>
-          <Feather name="plus" size={24} color={colors.primaryForeground} />
-          <Text style={[styles.fabText, { color: colors.primaryForeground }]}>Nueva sesión</Text>
-        </Pressable>
+      <View style={styles.ctaContainer}>
+        <Button
+          title="Start Workout"
+          onPress={() => {
+            if (activeRoutine?.exercises[0]) {
+              handleOpenDetail(activeRoutine.exercises[0]);
+            }
+          }}
+          icon="play-circle"
+        />
       </View>
+    </LinearGradient>
+  );
+}
+
+function MetaPill({ icon, label, colors }: { icon: keyof typeof Feather.glyphMap; label: string; colors: ReturnType<typeof useColors> }) {
+  return (
+    <View style={[styles.metaPill, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
+      <Feather name={icon} size={14} color={colors.primary} />
+      <Text style={[styles.metaPillText, { color: colors.foreground }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  exerciseCard: { marginBottom: 12, borderWidth: 1, borderColor: "transparent" },
-  exerciseHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  exerciseInfo: { flex: 1 },
-  exerciseName: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
-  exerciseMeta: { fontSize: 13, marginTop: 4 },
-  checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
+  screen: { flex: 1 },
+  routineHero: {
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
   },
-  miniCard: { width: 140, marginRight: 12 },
-  fabContainer: {
+  heroHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 16,
+    alignItems: "flex-start",
+  },
+  heroKicker: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.1,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontFamily: "Inter_700Bold",
+    marginTop: 8,
+    maxWidth: 220,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    marginTop: 8,
+    lineHeight: 20,
+    maxWidth: 220,
+  },
+  heroBadge: {
+    minWidth: 88,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  heroBadgeValue: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  heroBadgeLabel: { fontSize: 11, fontFamily: "Inter_500Medium", marginTop: 3, textTransform: "uppercase" },
+  heroMetaRow: { flexDirection: "row", gap: 10, marginTop: 18, flexWrap: "wrap" },
+  metaPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  metaPillText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  miniCard: { width: 170, marginRight: 12 },
+  ctaContainer: {
     position: "absolute",
     left: 20,
     right: 20,
-    alignItems: "center",
+    bottom: 22,
   },
-  fab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 30,
-    gap: 8,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  fabText: { fontSize: 15, fontFamily: "Inter_700Bold" },
   dayPicker: { flexDirection: "row", gap: 8, marginBottom: 24 },
   dayButton: {
     flex: 1,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
   },
   dayText: {
     fontSize: 14,

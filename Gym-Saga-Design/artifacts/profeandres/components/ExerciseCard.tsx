@@ -1,9 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { RoutineExercise, Exercise } from "@/types";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface Props {
   routineExercise: RoutineExercise;
@@ -27,61 +29,78 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
           borderRadius: colors.radius,
           opacity: pressed ? 0.8 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
+          shadowColor: re.completed ? colors.primary : colors.shadow,
         },
       ]}
     >
       <View style={styles.row}>
-        <View style={{ flex: 1 }}>
+        {re.media?.url ? (
+          <Image source={{ uri: re.media.url }} style={styles.media} contentFit="cover" transition={200} />
+        ) : (
+          <LinearGradient colors={colors.gradientCard} style={[styles.media, styles.mediaPlaceholder]}>
+            <Feather name="image" size={22} color={colors.mutedForeground} />
+          </LinearGradient>
+        )}
+
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kicker, { color: colors.primary }]}>EJERCICIO</Text>
+              <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
+                {re.name || exercise?.name || "Ejercicio"}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                onToggle();
+              }}
+              style={[
+                styles.checkbox,
+                {
+                  backgroundColor: re.completed ? colors.primary : colors.secondary,
+                  borderColor: re.completed ? colors.primary : colors.border,
+                },
+              ]}
+            >
+              {re.completed && (
+                <Feather name="check" size={16} color={colors.primaryForeground} />
+              )}
+            </Pressable>
+          </View>
+
           <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-            {re.name || exercise?.name || "Ejercicio"}
+            {`${re.sets} series x ${re.reps} repeticiones`}
           </Text>
           {(re.media || exercise?.videoUrl) && (
-             <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-               <Feather name="image" size={12} color={colors.primary} />
-               <Text style={[styles.muscle, { color: colors.primary, marginTop: 0 }]}>
-                 Ver guía visual
-               </Text>
-             </View>
+            <View style={styles.visualHint}>
+              <Feather name="play-circle" size={12} color={colors.accent} />
+              <Text style={[styles.muscle, { color: colors.accent, marginTop: 0 }]}>Demo visual disponible</Text>
+            </View>
+          )}
+
+          <View style={styles.metaRow}>
+            <Meta icon="repeat" label={`${re.sets}x${re.reps}`} colors={colors} />
+            {re.weightKg != null && (
+              <Meta icon="trending-up" label={`${re.weightKg} kg`} colors={colors} />
+            )}
+            {re.restSeconds != null && (
+              <Meta icon="clock" label={`${re.restSeconds}s`} colors={colors} />
+            )}
+          </View>
+
+          {re.notes && re.notes.length > 0 && (
+            <View style={styles.noteWrap}>
+              <Text style={[styles.notes, { color: colors.mutedForeground }]} numberOfLines={2}>
+                {re.notes[0]}
+              </Text>
+            </View>
           )}
         </View>
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            onToggle();
-          }}
-          style={[
-            styles.checkbox,
-            {
-              backgroundColor: re.completed ? colors.primary : "transparent",
-              borderColor: re.completed ? colors.primary : colors.border,
-            },
-          ]}
-        >
-          {re.completed && (
-            <Feather name="check" size={16} color={colors.primaryForeground} />
-          )}
-        </Pressable>
       </View>
-
-      <View style={styles.metaRow}>
-        <Meta icon="repeat" label={`${re.sets}×${re.reps}`} colors={colors} />
-        {re.weightKg != null && (
-          <Meta icon="trending-up" label={`${re.weightKg} kg`} colors={colors} />
-        )}
-        {re.restSeconds != null && (
-          <Meta icon="clock" label={`${re.restSeconds}s`} colors={colors} />
-        )}
-      </View>
-
-      {re.notes && re.notes.length > 0 && (
-        <View style={{ marginTop: 12 }}>
-          <Text style={[styles.notes, { color: colors.mutedForeground }]} numberOfLines={1}>
-            “{re.notes[0]}...”
-          </Text>
-        </View>
-      )}
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <Text style={[styles.footerText, { color: colors.primary }]}>Ver detalle</Text>
         <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
       </View>
     </Pressable>
@@ -106,15 +125,41 @@ function Meta({
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, borderWidth: 1, marginBottom: 12, position: "relative" },
-  row: { flexDirection: "row", alignItems: "center" },
-  name: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
+  container: {
+    padding: 14,
+    borderWidth: 1,
+    marginBottom: 14,
+    position: "relative",
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+  },
+  row: { flexDirection: "row", gap: 14, alignItems: "flex-start" },
+  media: {
+    width: 94,
+    height: 114,
+    borderRadius: 16,
+  },
+  mediaPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  content: { flex: 1 },
+  titleRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  kicker: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  name: { fontSize: 16, fontFamily: "Inter_600SemiBold", lineHeight: 22 },
   muscle: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
+  visualHint: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 },
   checkbox: {
     width: 28,
     height: 28,
@@ -126,14 +171,26 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: "row", gap: 16, marginTop: 12, flexWrap: "wrap" },
   meta: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  noteWrap: {
+    marginTop: 12,
+    paddingTop: 12,
+  },
   notes: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    fontStyle: "italic",
+    lineHeight: 20,
   },
   footer: {
-    position: "absolute",
-    right: 8,
-    bottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 4,
+    marginTop: 12,
+  },
+  footerText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
 });

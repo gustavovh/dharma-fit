@@ -16,7 +16,7 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
       {actionLabel && onAction && (
-        <Pressable onPress={onAction} style={styles.action}>
+        <Pressable onPress={onAction} style={[styles.action, { backgroundColor: colors.secondary, borderColor: colors.border }] }>
           <Text style={[styles.actionLabel, { color: colors.primary }]}>{actionLabel}</Text>
           <Feather name="chevron-right" size={16} color={colors.primary} />
         </Pressable>
@@ -34,15 +34,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   action: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   actionLabel: {
     fontSize: 14,

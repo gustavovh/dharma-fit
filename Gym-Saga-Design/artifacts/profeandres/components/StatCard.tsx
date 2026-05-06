@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface StatCardProps {
   icon: keyof typeof Feather.glyphMap;
@@ -14,10 +15,22 @@ export function StatCard({ icon, label, value, delta }: StatCardProps) {
   const colors = useColors();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+    <LinearGradient
+      colors={colors.gradientCard}
+      style={[
+        styles.container,
+        {
+          borderColor: colors.border,
+          borderRadius: colors.radius,
+          shadowColor: colors.shadow,
+        },
+      ]}
+    >
+      <View style={[styles.iconWrap, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+        <Feather name={icon} size={16} color={colors.primary} />
+      </View>
       <View style={styles.header}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>{label}</Text>
-        <Feather name={icon} size={16} color={colors.primary} />
       </View>
       <Text style={[styles.value, { color: colors.foreground }]}>{value}</Text>
       {delta && (
@@ -26,7 +39,7 @@ export function StatCard({ icon, label, value, delta }: StatCardProps) {
           <Text style={[styles.delta, { color: delta.positive ? colors.accent : colors.destructive }]}>{delta.value}</Text>
         </View>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -35,12 +48,24 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     flex: 1,
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+  },
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    marginBottom: 14,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   label: {
     fontSize: 12,
@@ -48,7 +73,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   value: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: "Inter_700Bold",
     fontVariant: ["tabular-nums"],
   },

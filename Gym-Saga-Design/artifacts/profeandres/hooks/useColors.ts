@@ -17,5 +17,10 @@ import colors from "@/constants/colors";
 export function useColors() {
   const scheme = useColorScheme();
   const palette = scheme === "dark" ? colors.dark : colors.light;
-  return { ...palette, radius: colors.radius };
+  return {
+    ...palette,
+    radius: colors.radius,
+    spacing: colors.spacing,
+    typography: colors.typography,
+  };
 }
