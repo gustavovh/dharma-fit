@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { RoutineExercise, Exercise } from "@/types";
 import { LinearGradient } from "expo-linear-gradient";
+import { AppIcon, AppIconName } from "./AppIcon";
 
 interface Props {
   routineExercise: RoutineExercise;
@@ -38,7 +38,7 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
           <Image source={{ uri: re.media.url }} style={styles.media} contentFit="cover" transition={200} />
         ) : (
           <LinearGradient colors={colors.gradientCard} style={[styles.media, styles.mediaPlaceholder]}>
-            <Feather name="image" size={22} color={colors.mutedForeground} />
+            <AppIcon name="image-outline" size={22} />
           </LinearGradient>
         )}
 
@@ -64,7 +64,7 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
               ]}
             >
               {re.completed && (
-                <Feather name="check" size={16} color={colors.primaryForeground} />
+                <AppIcon name="checkmark" size={16} color={colors.primaryForeground} />
               )}
             </Pressable>
           </View>
@@ -74,18 +74,18 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
           </Text>
           {(re.media || exercise?.videoUrl) && (
             <View style={styles.visualHint}>
-              <Feather name="play-circle" size={12} color={colors.accent} />
+              <AppIcon name="play-circle-outline" size={12} color={colors.accent} />
               <Text style={[styles.muscle, { color: colors.accent, marginTop: 0 }]}>Demo visual disponible</Text>
             </View>
           )}
 
           <View style={styles.metaRow}>
-            <Meta icon="repeat" label={`${re.sets}x${re.reps}`} colors={colors} />
+            <Meta icon="repeat-outline" label={`${re.sets}x${re.reps}`} colors={colors} />
             {re.weightKg != null && (
-              <Meta icon="trending-up" label={`${re.weightKg} kg`} colors={colors} />
+              <Meta icon="trending-up-outline" label={`${re.weightKg} kg`} colors={colors} />
             )}
             {re.restSeconds != null && (
-              <Meta icon="clock" label={`${re.restSeconds}s`} colors={colors} />
+              <Meta icon="time-outline" label={`${re.restSeconds}s`} colors={colors} />
             )}
           </View>
 
@@ -101,7 +101,7 @@ export function ExerciseCard({ routineExercise, exercise, onToggle, onDemo }: Pr
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
         <Text style={[styles.footerText, { color: colors.primary }]}>Ver detalle</Text>
-        <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        <AppIcon name="chevron-forward-outline" size={16} />
       </View>
     </Pressable>
   );
@@ -112,13 +112,13 @@ function Meta({
   label,
   colors,
 }: {
-  icon: keyof typeof Feather.glyphMap;
+  icon: AppIconName;
   label: string;
   colors: ReturnType<typeof useColors>;
 }) {
   return (
     <View style={styles.meta}>
-      <Feather name={icon} size={13} color={colors.mutedForeground} />
+      <AppIcon name={icon} size={13} />
       <Text style={[styles.metaText, { color: colors.foreground }]}>{label}</Text>
     </View>
   );

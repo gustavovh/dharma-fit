@@ -1,10 +1,10 @@
 import React from "react";
 import { Text, StyleSheet, Pressable, StyleProp, ViewStyle, TextStyle, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 import * as Haptics from "expo-haptics";
+import { AppIcon, AppIconName } from "./AppIcon";
 
 interface ButtonProps {
   onPress: () => void;
@@ -13,7 +13,7 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   disabled?: boolean;
-  icon?: keyof typeof Feather.glyphMap;
+  icon?: AppIconName;
 }
 
 export function Button({ onPress, title, variant = "primary", style, textStyle, disabled, icon }: ButtonProps) {
@@ -47,7 +47,7 @@ export function Button({ onPress, title, variant = "primary", style, textStyle, 
 
   const buttonBody = (
     <View style={styles.content}>
-      {icon ? <Feather name={icon} size={18} color={getTextColor()} /> : null}
+      {icon ? <AppIcon name={icon} size={18} color={getTextColor()} /> : null}
       <Text style={[styles.text, { color: getTextColor() }, textStyle]}>{title}</Text>
     </View>
   );

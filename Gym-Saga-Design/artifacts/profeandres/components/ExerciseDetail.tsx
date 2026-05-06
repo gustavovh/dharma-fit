@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { RoutineExercise } from "@/types";
 import { BottomSheet } from "./BottomSheet";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { LinearGradient } from "expo-linear-gradient";
+import { AppIcon, AppIconName } from "./AppIcon";
 
 interface Props {
   visible: boolean;
@@ -35,23 +35,23 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
               />
               <LinearGradient colors={["transparent", colors.overlay]} style={styles.mediaOverlay} />
               <View style={styles.mediaBadge}>
-                <Feather name="play-circle" size={18} color={colors.primary} />
+                <AppIcon name="play-circle-outline" size={18} active />
                 <Text style={[styles.mediaBadgeText, { color: colors.foreground }]}>Demostracion</Text>
               </View>
             </View>
           ) : (
             <LinearGradient colors={colors.gradientCard} style={[styles.mediaPlaceholder, { borderRadius: colors.radius, borderColor: colors.border }]}> 
-              <Feather name="image" size={48} color={colors.mutedForeground} />
+              <AppIcon name="image-outline" size={48} />
               <Text style={{ color: colors.mutedForeground, marginTop: 8 }}>Sin guía visual</Text>
             </LinearGradient>
           )}
         </View>
 
         <View style={styles.statsGrid}>
-          <StatBox icon="repeat" label="Series" value={exercise.sets.toString()} colors={colors} />
-          <StatBox icon="activity" label="Reps" value={exercise.reps} colors={colors} />
-          <StatBox icon="trending-up" label="Peso" value={exercise.weightKg ? `${exercise.weightKg} kg` : "Libre"} colors={colors} />
-          <StatBox icon="clock" label="Descanso" value={`${exercise.restSeconds || 60}s`} colors={colors} />
+          <StatBox icon="repeat-outline" label="Series" value={exercise.sets.toString()} colors={colors} />
+          <StatBox icon="barbell-outline" label="Reps" value={exercise.reps} colors={colors} />
+          <StatBox icon="trending-up-outline" label="Peso" value={exercise.weightKg ? `${exercise.weightKg} kg` : "Libre"} colors={colors} />
+          <StatBox icon="time-outline" label="Descanso" value={`${exercise.restSeconds || 60}s`} colors={colors} />
         </View>
 
         <Card style={styles.executionCard}>
@@ -64,14 +64,14 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
         {exercise.notes && exercise.notes.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather name="message-circle" size={18} color={colors.primary} />
+              <AppIcon name="chatbubble-ellipses-outline" size={18} active />
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Indicaciones del Coach</Text>
             </View>
             <Card style={styles.notesCard}>
               {exercise.notes.map((note, index) => (
                 <View key={index} style={styles.noteRow}>
                    <View style={[styles.noteDot, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-                     <Feather name={note.includes("Descanso") ? "clock" : "check"} size={12} color={colors.primary} />
+                     <AppIcon name={note.includes("Descanso") ? "time-outline" : "checkmark-outline"} size={12} active />
                    </View>
                    <Text style={[styles.noteText, { color: colors.foreground }]}>{note}</Text>
                 </View>
@@ -97,7 +97,7 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
             title={exercise.completed ? "Marcado como Completado" : "Marcar como Completado"}
             onPress={onToggleComplete}
             variant={exercise.completed ? "outline" : "default"}
-            icon={exercise.completed ? "check-circle" : "circle"}
+            icon={exercise.completed ? "checkmark-circle-outline" : "ellipse-outline"}
           />
         </View>
       </ScrollView>
@@ -105,10 +105,10 @@ export function ExerciseDetail({ visible, onClose, exercise, onToggleComplete }:
   );
 }
 
-function StatBox({ icon, label, value, colors }: { icon: keyof typeof Feather.glyphMap, label: string, value: string, colors: any }) {
+function StatBox({ icon, label, value, colors }: { icon: AppIconName, label: string, value: string, colors: any }) {
   return (
     <LinearGradient colors={colors.gradientCard} style={[styles.statBox, { borderColor: colors.border }]}> 
-      <Feather name={icon} size={16} color={colors.primary} />
+      <AppIcon name={icon} size={16} active />
       <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text>
       <Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text>
     </LinearGradient>

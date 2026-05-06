@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -13,6 +12,7 @@ import { ExerciseCard } from "@/components/ExerciseCard";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
 import { Button } from "@/components/Button";
 import { Routine, RoutineExercise } from "@/types";
+import { AppIcon, AppIconName } from "@/components/AppIcon";
 
 const CURRENT_USER_ID = "u1";
 
@@ -80,9 +80,9 @@ export default function Training() {
           </View>
 
           <View style={styles.heroMetaRow}>
-            <MetaPill icon="clock" label={`${Math.max(totalExercises * 8, 30)} min`} colors={colors} />
-            <MetaPill icon="zap" label="Intermedio" colors={colors} />
-            <MetaPill icon="activity" label={`${totalExercises} ejercicios`} colors={colors} />
+            <MetaPill icon="time-outline" label={`${Math.max(totalExercises * 8, 30)} min`} colors={colors} />
+            <MetaPill icon="speedometer-outline" label="Intermedio" colors={colors} />
+            <MetaPill icon="list-outline" label={`${totalExercises} ejercicios`} colors={colors} />
           </View>
         </LinearGradient>
 
@@ -158,17 +158,17 @@ export default function Training() {
               handleOpenDetail(activeRoutine.exercises[0]);
             }
           }}
-          icon="play-circle"
+          icon="play-circle-outline"
         />
       </View>
     </LinearGradient>
   );
 }
 
-function MetaPill({ icon, label, colors }: { icon: keyof typeof Feather.glyphMap; label: string; colors: ReturnType<typeof useColors> }) {
+function MetaPill({ icon, label, colors }: { icon: AppIconName; label: string; colors: ReturnType<typeof useColors> }) {
   return (
     <View style={[styles.metaPill, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-      <Feather name={icon} size={14} color={colors.primary} />
+      <AppIcon name={icon} size={14} active />
       <Text style={[styles.metaPillText, { color: colors.foreground }]}>{label}</Text>
     </View>
   );

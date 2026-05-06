@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -8,6 +7,7 @@ import { Card } from "@/components/Card";
 import { Avatar } from "@/components/Avatar";
 import { getUser } from "@/lib/storage";
 import { User } from "@/types";
+import { AppIcon, AppIconName } from "@/components/AppIcon";
 
 const CURRENT_USER_ID = "u1";
 
@@ -37,7 +37,7 @@ export default function Profile() {
           <View style={styles.avatarContainer}>
             <Avatar initials={user?.avatar || "AC"} size={80} />
             <Pressable style={[styles.editButton, { backgroundColor: colors.primary }]}>
-              <Feather name="edit-2" size={16} color={colors.primaryForeground} />
+              <AppIcon name="create-outline" size={16} color={colors.primaryForeground} />
             </Pressable>
           </View>
           <Text style={[styles.userName, { color: colors.foreground }]}>{user?.name || "Cargando..."}</Text>
@@ -47,9 +47,9 @@ export default function Profile() {
         <SectionHeader title="Mis Objetivos" />
         <Card>
           <View style={{ gap: 12 }}>
-            <ObjectiveRow icon="target" label="Meta" value="Ganancia Muscular" />
-            <ObjectiveRow icon="calendar" label="Frecuencia" value="4 días / semana" />
-            <ObjectiveRow icon="droplet" label="Agua diaria" value="2.5 Litros" />
+            <ObjectiveRow icon="flag-outline" label="Meta" value="Ganancia Muscular" />
+            <ObjectiveRow icon="calendar-outline" label="Frecuencia" value="4 días / semana" />
+            <ObjectiveRow icon="water-outline" label="Agua diaria" value="2.5 Litros" />
           </View>
         </Card>
 
@@ -57,7 +57,7 @@ export default function Profile() {
         <Card>
           <View style={styles.syncRow}>
             <View style={styles.syncInfo}>
-              <Feather name="heart" size={20} color={colors.primary} />
+              <AppIcon name="heart-outline" size={20} active glow />
               <View>
                 <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>
                   Apple Health / Google Fit
@@ -79,14 +79,14 @@ export default function Profile() {
         <SectionHeader title="Preferencias" />
         <Card>
           <View style={{ gap: 16 }}>
-            <MenuRow icon="bell" label="Notificaciones" />
-            <MenuRow icon="shield" label="Privacidad" />
-            <MenuRow icon="help-circle" label="Soporte Técnico" />
+            <MenuRow icon="notifications-outline" label="Notificaciones" />
+            <MenuRow icon="shield-outline" label="Privacidad" />
+            <MenuRow icon="help-circle-outline" label="Soporte Técnico" />
           </View>
         </Card>
 
         <Pressable style={[styles.logoutButton, { borderColor: colors.destructive }]}>
-          <Feather name="log-out" size={20} color={colors.destructive} />
+          <AppIcon name="log-out-outline" size={20} color={colors.destructive} />
           <Text style={[styles.logoutText, { color: colors.destructive }]}>Cerrar Sesión</Text>
         </Pressable>
       </ScrollView>
@@ -94,12 +94,12 @@ export default function Profile() {
   );
 }
 
-function ObjectiveRow({ icon, label, value }: any) {
+function ObjectiveRow({ icon, label, value }: { icon: AppIconName; label: string; value: string }) {
   const colors = useColors();
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Feather name={icon as any} size={16} color={colors.mutedForeground} />
+        <AppIcon name={icon} size={16} />
         <Text style={{ color: colors.mutedForeground }}>{label}</Text>
       </View>
       <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>{value}</Text>
@@ -107,17 +107,17 @@ function ObjectiveRow({ icon, label, value }: any) {
   );
 }
 
-function MenuRow({ icon, label }: any) {
+function MenuRow({ icon, label }: { icon: AppIconName; label: string }) {
   const colors = useColors();
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
-          <Feather name={icon as any} size={18} color={colors.foreground} />
+          <AppIcon name={icon} size={18} active />
         </View>
         <Text style={{ color: colors.foreground, fontFamily: "Inter_500Medium" }}>{label}</Text>
       </View>
-      <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+      <AppIcon name="chevron-forward-outline" size={18} />
     </View>
   );
 }

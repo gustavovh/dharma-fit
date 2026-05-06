@@ -5,7 +5,6 @@ import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
-import { Feather } from "@expo/vector-icons";
 
 export default function NutritionScreen() {
   const colors = useColors();
@@ -20,13 +19,13 @@ export default function NutritionScreen() {
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <StatCard
-            icon="activity"
+            icon="flame-outline"
             label="Calorías"
             value="2,400"
             delta={{ value: "de 2,500", positive: true }}
           />
           <StatCard
-            icon="target"
+            icon="nutrition-outline"
             label="Objetivo"
             value="Volumen"
           />

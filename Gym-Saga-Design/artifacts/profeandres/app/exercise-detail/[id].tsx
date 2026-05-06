@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,6 +10,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { MOCK_EXERCISES } from "@/lib/mockData";
 import { Button } from "@/components/Button";
+import { AppIcon, AppIconName } from "@/components/AppIcon";
 
 export default function ExerciseDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -19,7 +19,7 @@ export default function ExerciseDetail() {
   const exercise = useMemo(() => MOCK_EXERCISES.find((e) => e.id === id), [id]);
 
   if (!exercise) {
-    return <EmptyState icon="alert-circle" title="Ejercicio no encontrado" subtitle="" />;
+    return <EmptyState icon="alert-circle-outline" title="Ejercicio no encontrado" subtitle="" />;
   }
 
   return (
@@ -31,7 +31,7 @@ export default function ExerciseDetail() {
         <LinearGradient colors={colors.gradientHero} style={[styles.hero, { borderColor: colors.border }]}> 
           <View style={styles.heroMedia}>
             <View style={[styles.heroPlay, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-              <Feather name="play" size={28} color={colors.primary} />
+              <AppIcon name="play-outline" size={28} active glow />
             </View>
             <Text style={[styles.heroVideoLabel, { color: colors.mutedForeground }]}>DEMO / GIF</Text>
           </View>
@@ -40,9 +40,9 @@ export default function ExerciseDetail() {
           <Text style={[styles.exerciseGroup, { color: colors.primary }]}>{exercise.muscleGroup}</Text>
 
           <View style={styles.metaRow}>
-            <MetaStat icon="repeat" label={`${exercise.defaultSets} series`} colors={colors} />
-            <MetaStat icon="activity" label={`${exercise.defaultReps} reps`} colors={colors} />
-            <MetaStat icon="clock" label="60 min" colors={colors} />
+            <MetaStat icon="repeat-outline" label={`${exercise.defaultSets} series`} colors={colors} />
+            <MetaStat icon="barbell-outline" label={`${exercise.defaultReps} reps`} colors={colors} />
+            <MetaStat icon="time-outline" label="60 min" colors={colors} />
           </View>
         </LinearGradient>
 
@@ -62,7 +62,7 @@ export default function ExerciseDetail() {
         <SectionHeader title="Demostración" />
         <Card>
           <View style={[styles.demoFrame, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-            <Feather name="play-circle" size={44} color={colors.primary} />
+            <AppIcon name="play-circle-outline" size={44} active glow />
           </View>
           <Text style={[styles.blockTitle, { color: colors.foreground }]}>Paso a paso</Text>
           <Step n={1} text="Acuéstate con apoyo completo y pies firmes en el suelo." colors={colors} />
@@ -94,23 +94,23 @@ export default function ExerciseDetail() {
               "Controla la bajada y la subida",
             ].map((tip) => (
               <View key={tip} style={[styles.tipCard, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-                <Feather name="shield" size={16} color={colors.primary} />
+                <AppIcon name="shield-outline" size={16} active />
                 <Text style={[styles.tipCardText, { color: colors.secondaryForeground }]}>{tip}</Text>
               </View>
             ))}
           </View>
         </Card>
 
-        <Button title="Add to Routine" onPress={() => {}} icon="plus-circle" style={{ marginTop: 20 }} />
+        <Button title="Add to Routine" onPress={() => {}} icon="add-circle-outline" style={{ marginTop: 20 }} />
       </LinearGradient>
     </ScrollView>
   );
 }
 
-function MetaStat({ icon, label, colors }: { icon: keyof typeof Feather.glyphMap; label: string; colors: ReturnType<typeof useColors> }) {
+function MetaStat({ icon, label, colors }: { icon: AppIconName; label: string; colors: ReturnType<typeof useColors> }) {
   return (
     <View style={[styles.metaPill, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-      <Feather name={icon} size={14} color={colors.primary} />
+      <AppIcon name={icon} size={14} active />
       <Text style={[styles.metaPillText, { color: colors.foreground }]}>{label}</Text>
     </View>
   );

@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { LinearGradient } from "expo-linear-gradient";
+import { AppIcon, AppIconName } from "./AppIcon";
 
 interface StatCardProps {
-  icon: keyof typeof Feather.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string | number;
   delta?: { value: string; positive: boolean };
@@ -27,7 +27,7 @@ export function StatCard({ icon, label, value, delta }: StatCardProps) {
       ]}
     >
       <View style={[styles.iconWrap, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-        <Feather name={icon} size={16} color={colors.primary} />
+        <AppIcon name={icon} size={16} active glow />
       </View>
       <View style={styles.header}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>{label}</Text>
@@ -35,7 +35,7 @@ export function StatCard({ icon, label, value, delta }: StatCardProps) {
       <Text style={[styles.value, { color: colors.foreground }]}>{value}</Text>
       {delta && (
         <View style={styles.deltaContainer}>
-          <Feather name={delta.positive ? "arrow-up-right" : "arrow-down-right"} size={12} color={delta.positive ? colors.accent : colors.destructive} />
+          <AppIcon name={delta.positive ? "trending-up-outline" : "trending-down-outline"} size={12} color={delta.positive ? colors.accent : colors.destructive} />
           <Text style={[styles.delta, { color: delta.positive ? colors.accent : colors.destructive }]}>{delta.value}</Text>
         </View>
       )}

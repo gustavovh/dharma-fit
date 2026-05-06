@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, Pressable, Modal, useWindowDimensions } from "react-native";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from "react-native-reanimated";
+import Animated, { useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useColors } from "@/hooks/useColors";
-import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { AppIcon } from "./AppIcon";
 
 interface BottomSheetProps {
   visible: boolean;
@@ -59,7 +59,7 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
                 <Pressable onPress={onClose} style={[styles.closeButton, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-                  <Feather name="x" size={18} color={colors.mutedForeground} />
+                  <AppIcon name="close-outline" size={18} />
                 </Pressable>
               </View>
             )}

@@ -1,30 +1,14 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Feather } from "@expo/vector-icons";
-import { View } from "react-native";
 import { useColors } from "@/hooks/useColors";
+import { AppIcon, AppIconName } from "@/components/AppIcon";
 
 export default function TabLayout() {
   const colors = useColors();
 
-  const renderIcon = (name: keyof typeof Feather.glyphMap) =>
+  const renderIcon = (name: AppIconName) =>
     ({ color, size, focused }: { color: string; size: number; focused: boolean }) => (
-      <View
-        style={{
-          minWidth: 44,
-          height: 32,
-          borderRadius: 16,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: focused ? colors.secondary : "transparent",
-          shadowColor: focused ? colors.primary : "transparent",
-          shadowOpacity: focused ? 0.35 : 0,
-          shadowRadius: focused ? 14 : 0,
-          shadowOffset: { width: 0, height: 8 },
-        }}
-      >
-        <Feather name={name} size={size} color={color} />
-      </View>
+      <AppIcon name={name} size={size} color={color} active={focused} glow highlight />
     );
 
   return (
@@ -55,35 +39,35 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Inicio",
-          tabBarIcon: renderIcon("home"),
+          tabBarIcon: renderIcon("home-outline"),
         }}
       />
       <Tabs.Screen
         name="training"
         options={{
           title: "Entrenar",
-          tabBarIcon: renderIcon("zap"),
+          tabBarIcon: renderIcon("barbell-outline"),
         }}
       />
       <Tabs.Screen
         name="progress"
         options={{
           title: "Progreso",
-          tabBarIcon: renderIcon("trending-up"),
+          tabBarIcon: renderIcon("stats-chart-outline"),
         }}
       />
       <Tabs.Screen
         name="nutrition"
         options={{
           title: "Nutrición",
-          tabBarIcon: renderIcon("coffee"),
+          tabBarIcon: renderIcon("nutrition-outline"),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Perfil",
-          tabBarIcon: renderIcon("user"),
+          tabBarIcon: renderIcon("person-outline"),
         }}
       />
     </Tabs>

@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { AppIcon, AppIconName } from "./AppIcon";
 
 interface EmptyStateProps {
-  icon: keyof typeof Feather.glyphMap;
+  icon: AppIconName;
   title: string;
   subtitle: string;
 }
@@ -15,7 +15,7 @@ export function EmptyState({ icon, title, subtitle }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={[styles.iconContainer, { backgroundColor: colors.secondary, borderRadius: colors.radius }]}>
-        <Feather name={icon} size={32} color={colors.primary} />
+        <AppIcon name={icon} size={32} active glow />
       </View>
       <Text style={[styles.title, { color: colors.foreground }]}>{title}</Text>
       <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>{subtitle}</Text>

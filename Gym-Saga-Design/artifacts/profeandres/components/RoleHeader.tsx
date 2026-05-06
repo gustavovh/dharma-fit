@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { Image } from "expo-image";
-import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { LinearGradient } from "expo-linear-gradient";
 import { Avatar } from "./Avatar";
+import { AppIcon } from "./AppIcon";
 
 interface RoleHeaderProps {
   greeting?: string;
@@ -36,14 +36,10 @@ export function AppHeader({
         <View style={styles.logoRow}>
           <LinearGradient colors={colors.gradientHero} style={[styles.brandPill, { borderColor: colors.border }]}> 
             <Image
-              source={require("../assets/images/profeandres-logo.png")}
+              source={require("../assets/images/dharmafit.png")}
               style={styles.logo}
               contentFit="contain"
             />
-            <View>
-              <Text style={[styles.brandLabel, { color: colors.primary }]}>PERFORMANCE CLUB</Text>
-              <Text style={[styles.brandTitle, { color: colors.foreground }]}>DharmaFit</Text>
-            </View>
           </LinearGradient>
         </View>
       )}
@@ -67,7 +63,7 @@ export function AppHeader({
               onPress={() => router.push("/notifications")}
               style={[styles.bellBtn, { backgroundColor: colors.secondary, borderColor: colors.border, shadowColor: colors.accent }]}
             >
-              <Feather name="bell" size={20} color={colors.foreground} />
+              <AppIcon name="notifications-outline" size={20} active glow />
               <View style={[styles.dot, { backgroundColor: colors.primary }]} />
             </Pressable>
           )}
@@ -85,25 +81,14 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   brandPill: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: 20,
     borderWidth: 1,
   },
-  logo: { width: 48, height: 48, borderRadius: 12 },
-  brandLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1.3,
-  },
-  brandTitle: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
-    marginTop: 2,
-  },
+  logo: { width: 180, height: 64 },
   container: {
     flexDirection: "row",
     alignItems: "flex-end",

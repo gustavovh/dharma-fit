@@ -85,7 +85,7 @@ export default function Notifications() {
       contentContainerStyle={{ padding: 20, paddingBottom: 24 + (Platform.OS === "web" ? 34 : insets.bottom) }}
     >
       {isEmpty ? (
-        <EmptyState icon="bell" title="Sin notificaciones" subtitle="Te avisaremos cuando haya novedades." />
+        <EmptyState icon="notifications-outline" title="Sin notificaciones" subtitle="Te avisaremos cuando haya novedades." />
       ) : (
         <>
           {today.length > 0 && (

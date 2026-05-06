@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -12,6 +11,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { ProgressRing } from "@/components/ProgressRing";
 import { LineChart } from "@/components/LineChart";
+import { AppIcon, AppIconName } from "@/components/AppIcon";
 import {
   getUser,
   getRoutinesForUser,
@@ -58,9 +58,9 @@ export default function Home() {
 
   const chartWidth = Math.max(220, width - 96);
   const quickActions = [
-    { label: "Entrenamientos", icon: "activity", onPress: () => router.push("/(tabs)/training") as void },
-    { label: "Calorías", icon: "droplet", onPress: () => router.push("/(tabs)/progress") as void },
-    { label: "Mindfulness", icon: "wind", onPress: () => router.push("/(tabs)/profile") as void },
+    { label: "Entrenamientos", icon: "barbell-outline", onPress: () => router.push("/(tabs)/training") as void },
+    { label: "Calorías", icon: "flame-outline", onPress: () => router.push("/(tabs)/progress") as void },
+    { label: "Mindfulness", icon: "moon-outline", onPress: () => router.push("/(tabs)/profile") as void },
   ] as const;
 
   return (
@@ -86,14 +86,14 @@ export default function Home() {
               </View>
 
               <View style={styles.heroMetrics}>
-                <Metric icon="list" label="Ejercicios" value={`${todayRoutine?.exercises.length || 0}`} colors={colors} />
-                <Metric icon="clock" label="Duracion" value={`${Math.max((todayRoutine?.exercises.length || 4) * 8, 30)} min`} colors={colors} />
-                <Metric icon="target" label="Meta" value={`${completedSessions}/${weeklyTarget}`} colors={colors} />
+                <Metric icon="list-outline" label="Ejercicios" value={`${todayRoutine?.exercises.length || 0}`} colors={colors} />
+                <Metric icon="time-outline" label="Duracion" value={`${Math.max((todayRoutine?.exercises.length || 4) * 8, 30)} min`} colors={colors} />
+                <Metric icon="flag-outline" label="Meta" value={`${completedSessions}/${weeklyTarget}`} colors={colors} />
               </View>
 
               <View style={[styles.heroCTA, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
                 <Text style={[styles.heroCTAText, { color: colors.foreground }]}>{todayRoutine ? "Start workout" : "Revisar agenda"}</Text>
-                <Feather name="arrow-up-right" size={18} color={colors.primary} />
+                <AppIcon name="arrow-forward-outline" size={18} active />
               </View>
             </LinearGradient>
           </Pressable>
@@ -108,7 +108,7 @@ export default function Home() {
                 <Text style={[styles.activitySubtitle, { color: colors.mutedForeground }]}>Tendencia de esfuerzo y cumplimiento.</Text>
               </View>
               <View style={[styles.activityBadge, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-                <Feather name="trending-up" size={14} color={colors.primary} />
+                <AppIcon name="stats-chart-outline" size={14} active />
                 <Text style={[styles.activityBadgeText, { color: colors.primary }]}>+12%</Text>
               </View>
             </View>
@@ -128,7 +128,7 @@ export default function Home() {
               <Pressable onPress={action.onPress} style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.88 : 1 }]}> 
                 <LinearGradient colors={colors.gradientCard} style={[styles.quickActionFill, { borderColor: colors.border }]}> 
                   <View style={[styles.quickIconWrap, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-                    <Feather name={action.icon} size={20} color={colors.primary} />
+                    <AppIcon name={action.icon} size={20} active glow />
                   </View>
                   <Text style={[styles.quickLabel, { color: colors.foreground }]}>{action.label}</Text>
                 </LinearGradient>
@@ -140,10 +140,10 @@ export default function Home() {
         <SectionHeader title="Panorama diario" />
         <View style={styles.statsRow}>
           <Animated.View entering={FadeInDown.delay(220).duration(320)} style={styles.flexOne}>
-            <StatCard icon="activity" label="Pasos" value="8,452" delta={{ value: "85% de meta", positive: true }} />
+            <StatCard icon="footsteps-outline" label="Pasos" value="8,452" delta={{ value: "85% de meta", positive: true }} />
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(300).duration(320)} style={styles.flexOne}>
-            <StatCard icon="droplet" label="Calorías" value="642" delta={{ value: "Muy activo", positive: true }} />
+            <StatCard icon="flame-outline" label="Calorías" value="642" delta={{ value: "Muy activo", positive: true }} />
           </Animated.View>
         </View>
 
@@ -168,10 +168,10 @@ export default function Home() {
   );
 }
 
-function Metric({ icon, label, value, colors }: { icon: keyof typeof Feather.glyphMap; label: string; value: string; colors: ReturnType<typeof useColors> }) {
+function Metric({ icon, label, value, colors }: { icon: AppIconName; label: string; value: string; colors: ReturnType<typeof useColors> }) {
   return (
     <View style={[styles.metricCard, { backgroundColor: colors.secondary, borderColor: colors.border }]}> 
-      <Feather name={icon} size={15} color={colors.primary} />
+      <AppIcon name={icon} size={15} active />
       <Text style={[styles.metricValue, { color: colors.foreground }]}>{value}</Text>
       <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>{label}</Text>
     </View>

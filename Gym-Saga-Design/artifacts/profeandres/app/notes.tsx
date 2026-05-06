@@ -95,7 +95,7 @@ export default function Notes() {
 
       <SectionHeader title="Historial" />
       {items.length === 0 ? (
-        <EmptyState icon="file-text" title="Sin observaciones" subtitle="Aún no has registrado ninguna nota." />
+        <EmptyState icon="document-text-outline" title="Sin observaciones" subtitle="Aún no has registrado ninguna nota." />
       ) : (
         items.map((o) => {
           const u = MOCK_USERS.find((m) => m.id === o.userId);

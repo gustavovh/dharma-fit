@@ -37,12 +37,12 @@ export default function Progress() {
       >
         <View style={{ flexDirection: "row", gap: 12 }}>
           <StatCard
-            icon="trending-down"
+            icon="trending-down-outline"
             label="Peso Inicial"
             value="85.0 kg"
           />
           <StatCard
-            icon="target"
+            icon="flag-outline"
             label="Meta"
             value="78.0 kg"
           />
@@ -64,13 +64,13 @@ export default function Progress() {
         <SectionHeader title="Composición Corporal" />
         <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
           <StatCard
-            icon="activity"
+            icon="pulse-outline"
             label="Grasa Corporal"
             value={`${measurements[measurements.length - 1]?.bodyFatPct || "--"}%`}
             delta={{ value: "-1.5%", positive: true }}
           />
           <StatCard
-            icon="award"
+            icon="barbell-outline"
             label="Masa Muscular"
             value="34.2 kg"
           />

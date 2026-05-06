@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useColors } from "@/hooks/useColors";
-import { Feather } from "@expo/vector-icons";
+import { AppIcon } from "./AppIcon";
 
 interface SectionHeaderProps {
   title: string;
@@ -18,7 +18,7 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
       {actionLabel && onAction && (
         <Pressable onPress={onAction} style={[styles.action, { backgroundColor: colors.secondary, borderColor: colors.border }] }>
           <Text style={[styles.actionLabel, { color: colors.primary }]}>{actionLabel}</Text>
-          <Feather name="chevron-right" size={16} color={colors.primary} />
+          <AppIcon name="chevron-forward-outline" size={16} active />
         </Pressable>
       )}
     </View>
