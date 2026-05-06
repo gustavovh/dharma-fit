@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { Platform, StyleProp, StyleSheet, Text, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
@@ -16,6 +16,43 @@ interface AppIconProps {
   highlight?: boolean;
   style?: StyleProp<ViewStyle>;
 }
+
+const WEB_ICON_FALLBACK: Record<string, string> = {
+  "home-outline": "⌂",
+  "barbell-outline": "⌁",
+  "stats-chart-outline": "↗",
+  "nutrition-outline": "◍",
+  "person-outline": "◔",
+  "document-text-outline": "▤",
+  "notifications-outline": "◉",
+  "list-outline": "≡",
+  "time-outline": "◷",
+  "flag-outline": "⚑",
+  "arrow-forward-outline": "›",
+  "footsteps-outline": "⋯",
+  "flame-outline": "△",
+  "alert-circle-outline": "!",
+  "play-outline": "▷",
+  "repeat-outline": "↻",
+  "play-circle-outline": "◉",
+  "shield-outline": "⬡",
+  "add-circle-outline": "+",
+  "close-outline": "✕",
+  "create-outline": "✎",
+  "calendar-outline": "◫",
+  "water-outline": "◒",
+  "heart-outline": "♡",
+  "help-circle-outline": "?",
+  "log-out-outline": "⇥",
+  "chevron-forward-outline": "›",
+  "image-outline": "▣",
+  "checkmark": "✓",
+  "trending-up-outline": "↗",
+  "trending-down-outline": "↘",
+  "pulse-outline": "∿",
+  "chatbubble-ellipses-outline": "…",
+  "speedometer-outline": "◴",
+};
 
 export function AppIcon({
   name,
@@ -39,6 +76,7 @@ export function AppIcon({
 
   const iconColor = color ?? (active ? colors.primary : colors.mutedForeground);
   const containerSize = size + 20;
+  const webFallbackGlyph = WEB_ICON_FALLBACK[name] ?? "•";
 
   return (
     <Animated.View
@@ -58,7 +96,20 @@ export function AppIcon({
         style,
       ]}
     >
-      <Ionicons name={name} size={size} color={iconColor} />
+      {Platform.OS === "web" ? (
+        <Text
+          style={{
+            color: iconColor,
+            fontSize: size,
+            fontWeight: active ? "700" : "600",
+            lineHeight: size + 2,
+          }}
+        >
+          {webFallbackGlyph}
+        </Text>
+      ) : (
+        <Ionicons name={name} size={size} color={iconColor} />
+      )}
     </Animated.View>
   );
 }
