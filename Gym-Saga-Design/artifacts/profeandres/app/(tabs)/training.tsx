@@ -10,7 +10,6 @@ import { Card } from "@/components/Card";
 import { getRoutinesForUser } from "@/lib/storage";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
-import { Button } from "@/components/Button";
 import { Routine, RoutineExercise } from "@/types";
 import { AppIcon, AppIconName } from "@/components/AppIcon";
 
@@ -149,18 +148,6 @@ export default function Training() {
         exercise={selectedExercise}
         onToggleComplete={() => selectedExercise && toggleExercise(selectedExercise.id)}
       />
-
-      <View style={styles.ctaContainer}>
-        <Button
-          title="Start Workout"
-          onPress={() => {
-            if (activeRoutine?.exercises[0]) {
-              handleOpenDetail(activeRoutine.exercises[0]);
-            }
-          }}
-          icon="play-circle-outline"
-        />
-      </View>
     </LinearGradient>
   );
 }
@@ -228,12 +215,6 @@ const styles = StyleSheet.create({
   },
   metaPillText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   miniCard: { width: 170, marginRight: 12 },
-  ctaContainer: {
-    position: "absolute",
-    left: 20,
-    right: 20,
-    bottom: 22,
-  },
   dayPicker: { flexDirection: "row", gap: 8, marginBottom: 24 },
   dayButton: {
     flex: 1,

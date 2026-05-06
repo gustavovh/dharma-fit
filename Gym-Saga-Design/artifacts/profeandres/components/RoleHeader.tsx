@@ -77,18 +77,20 @@ export function AppHeader({
 const styles = StyleSheet.create({
   logoRow: {
     paddingHorizontal: 20,
-    marginBottom: 8,
-    alignItems: "flex-start",
+    marginBottom: 12,
+    alignItems: "stretch",
   },
   brandPill: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 20,
+    width: "100%",
+    minHeight: 120,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderRadius: 24,
     borderWidth: 1,
   },
-  logo: { width: 180, height: 64 },
+  logo: { width: "100%", height: 110 },
   container: {
     flexDirection: "row",
     alignItems: "flex-end",
