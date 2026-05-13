@@ -7,13 +7,13 @@ import { useColors } from "@/hooks/useColors";
 import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
-import { getRoutinesForUser } from "@/lib/storage";
+import { gymApi } from "@/lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
 import { Routine, RoutineExercise } from "@/types";
 import { AppIcon, AppIconName } from "@/components/AppIcon";
-
-const CURRENT_USER_ID = "u1";
+import { ActivityIndicator } from "react-native";
 
 export default function Training() {
   const colors = useColors();
@@ -21,30 +21,66 @@ export default function Training() {
   const [activeRoutine, setActiveRoutine] = useState<Routine | undefined>();
   const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const data = await getRoutinesForUser(CURRENT_USER_ID);
-      setRoutines(data);
-      const today = ((new Date().getDay() + 6) % 7) + 1;
-      setActiveRoutine(data.find((r) => r.dayOfWeek === today) || data[0]);
+      try {
+        const id = await AsyncStorage.getItem("atleta_id");
+        if (id) {
+          const res = await gymApi.getRoutines(id);
+          if (res.success) {
+            setRoutines(res.data);
+            const today = ((new Date().getDay() + 6) % 7) + 1;
+            setActiveRoutine(res.data.find((r: any) => r.dayOfWeek === today) || res.data[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch routines:", err);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
-  const toggleExercise = (exerciseId: string) => {
+  const toggleExercise = async (exerciseId: string) => {
     if (!activeRoutine) return;
+    
+    const exercise = activeRoutine.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return;
+
+    const newStatus = !exercise.completed;
+
+    // Optimistic update
     const updated = {
       ...activeRoutine,
       exercises: activeRoutine.exercises.map((ex) =>
-        ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
+        ex.id === exerciseId ? { ...ex, completed: newStatus } : ex
       ),
     };
     setActiveRoutine(updated);
-    // If detail is open, update the selected exercise state too
+    
     if (selectedExercise?.id === exerciseId) {
       setSelectedExercise(updated.exercises.find(ex => ex.id === exerciseId) || null);
     }
+
+    // API Call
+    try {
+      await gymApi.markComplete(exerciseId, newStatus);
+    } catch (err) {
+      console.error("Failed to sync exercise status:", err);
+      // Rollback on error
+      setActiveRoutine(activeRoutine);
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
+        <ActivityIndicator size="large" color="#ff4444" />
+      </View>
+    );
+  }
 
   const handleOpenDetail = (exercise: RoutineExercise) => {
     setSelectedExercise(exercise);

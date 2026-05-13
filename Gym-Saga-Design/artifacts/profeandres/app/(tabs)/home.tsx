@@ -13,13 +13,11 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { LineChart } from "@/components/LineChart";
 import { AppIcon, AppIconName } from "@/components/AppIcon";
 import {
-  getUser,
-  getRoutinesForUser,
-  getMeasurements,
-} from "@/lib/storage";
+  gymApi
+} from "@/lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Routine, Measurement, User } from "@/types";
-
-const CURRENT_USER_ID = "u1";
+import { ActivityIndicator } from "react-native";
 
 export default function Home() {
   const colors = useColors();
@@ -28,14 +26,37 @@ export default function Home() {
   const [user, setUser] = useState<User | undefined>();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      setUser(await getUser(CURRENT_USER_ID));
-      setRoutines(await getRoutinesForUser(CURRENT_USER_ID));
-      setMeasurements(await getMeasurements(CURRENT_USER_ID));
+      try {
+        const id = await AsyncStorage.getItem("atleta_id");
+        if (id) {
+          const profileRes = await gymApi.getProfile(id);
+          const routinesRes = await gymApi.getRoutines(id);
+          
+          if (profileRes.success) setUser(profileRes.data);
+          if (routinesRes.success) setRoutines(routinesRes.data);
+          
+          // Measurements would come from a separate endpoint or profile
+          // For now, if profile has measurements we use them, otherwise mocks for UI
+        }
+      } catch (err) {
+        console.error("Failed to fetch home data:", err);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
+        <ActivityIndicator size="large" color="#ff4444" />
+      </View>
+    );
+  }
 
   const today = new Date();
   const dayOfWeek = ((today.getDay() + 6) % 7) + 1;
