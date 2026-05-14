@@ -1,7 +1,15 @@
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "@workspace/admin-sdk";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_super_secret_jwt_key";
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+  return value;
+}
+
+const JWT_SECRET = requireEnv("JWT_SECRET");
 const JWT_EXPIRY = process.env.JWT_EXPIRY || "15m";
 
 export function jwtSign(payload: Omit<JwtPayload, "iat" | "exp">): string {
@@ -14,7 +22,7 @@ export function jwtSign(payload: Omit<JwtPayload, "iat" | "exp">): string {
 export function jwtVerify(token: string): JwtPayload {
   return jwt.verify(token, JWT_SECRET, {
     algorithms: ["HS256"],
-  }) as JwtPayload;
+  }) as unknown as JwtPayload;
 }
 
 export function jwtSignRefreshToken(): string {

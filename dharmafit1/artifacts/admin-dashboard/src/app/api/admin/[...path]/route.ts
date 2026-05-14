@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getBackendApiUrl } from "@/lib/server-env";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -25,7 +26,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
 }
 
 async function proxyRequest(req: NextRequest, path: string[]) {
-  const backendUrl = process.env.BACKEND_API_URL || "http://localhost:3001";
+  const backendUrl = getBackendApiUrl();
   const urlPath = path.join("/");
   const searchParams = req.nextUrl.search;
   

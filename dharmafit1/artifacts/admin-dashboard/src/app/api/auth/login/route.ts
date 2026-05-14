@@ -3,9 +3,11 @@
  * Esto permite que Next.js maneje las peticiones al servidor admin
  */
 
+import { getBackendApiUrl } from "@/lib/server-env";
+
 export async function POST(req: Request) {
   const { email, password } = await req.json();
-  const backendUrl = process.env.BACKEND_API_URL || "http://localhost:3001";
+  const backendUrl = getBackendApiUrl();
 
   try {
     const response = await fetch(

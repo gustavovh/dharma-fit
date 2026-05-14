@@ -20,4 +20,4 @@ RUN pnpm install --no-frozen-lockfile
 EXPOSE 3001
 
 # Start the API server
-CMD ["pnpm", "-F", "@workspace/api-server", "dev:local"]
+CMD ["pnpm", "-F", "@workspace/api-server", "start"]

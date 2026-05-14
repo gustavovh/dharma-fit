@@ -8,6 +8,8 @@
     "dev:local": "expo start --web --port 8081",
     "build": "node scripts/build.js",
     "build:web": "expo export --platform web",
+    "build:apk:preview": "pnpm exec eas build --platform android --profile preview",
+    "build:aab:production": "pnpm exec eas build --platform android --profile production",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

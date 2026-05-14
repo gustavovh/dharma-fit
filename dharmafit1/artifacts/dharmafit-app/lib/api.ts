@@ -2,8 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Measurement, Notification, Routine, User } from "@/types";
 import { enqueueSyncAction, flushSyncQueue, getSyncQueueLength } from "@/lib/syncQueue";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? (__DEV__ ? "http://localhost:3001" : "");
 const REQUEST_TIMEOUT_MS = 8000;
+
+if (!BASE_URL) {
+  throw new Error("EXPO_PUBLIC_API_URL is required for production builds");
+}
 
 type ApiEnvelope<T> = {
   success: boolean;
