@@ -6,49 +6,8 @@ import { useColors } from "@/hooks/useColors";
 import { NotificationItem } from "@/components/NotificationItem";
 import { EmptyState } from "@/components/EmptyState";
 import { SectionHeader } from "@/components/SectionHeader";
-import { getNotifications } from "@/lib/storage";
+import { gymApi } from "@/lib/api";
 import { Notification } from "@/types";
-
-const CURRENT_USER_ID = "u1";
-
-const EXTRA: Notification[] = [
-  {
-    id: "nx1",
-    userId: CURRENT_USER_ID,
-    type: "payment",
-    title: "Pago próximo",
-    message: "Tu cuota mensual vence en 3 días.",
-    date: new Date(Date.now() - 3600000).toISOString(),
-    read: false,
-  },
-  {
-    id: "nx2",
-    userId: CURRENT_USER_ID,
-    type: "routine",
-    title: "Nueva rutina asignada",
-    message: "Tu entrenador actualizó tu rutina de hipertrofia.",
-    date: new Date(Date.now() - 86400000).toISOString(),
-    read: true,
-  },
-  {
-    id: "nx3",
-    userId: CURRENT_USER_ID,
-    type: "reminder",
-    title: "Recordatorio de entrenamiento",
-    message: "Mañana tienes sesión a las 07:30.",
-    date: new Date(Date.now() - 86400000 * 2).toISOString(),
-    read: true,
-  },
-  {
-    id: "nx4",
-    userId: CURRENT_USER_ID,
-    type: "progress",
-    title: "Progreso registrado",
-    message: "Tu peso bajó 1 kg respecto a la semana pasada.",
-    date: new Date(Date.now() - 86400000 * 5).toISOString(),
-    read: true,
-  },
-];
 
 function group(items: Notification[]) {
   const today: Notification[] = [];
@@ -71,8 +30,14 @@ export default function Notifications() {
 
   useEffect(() => {
     (async () => {
-      const stored = await getNotifications(CURRENT_USER_ID);
-      setItems([...stored, ...EXTRA].sort((a, b) => +new Date(b.date) - +new Date(a.date)));
+      try {
+        const res = await gymApi.getNotifications();
+        if (res.success) {
+          setItems(res.data.sort((a, b) => +new Date(b.date) - +new Date(a.date)));
+        }
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
     })();
   }, []);
 

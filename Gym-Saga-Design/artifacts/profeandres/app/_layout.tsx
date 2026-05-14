@@ -17,6 +17,7 @@ import { View } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { initStorage } from "@/lib/storage";
+import { gymApi } from "@/lib/api";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,6 +56,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     initStorage();
+  }, []);
+
+  useEffect(() => {
+    gymApi.flushPendingSync().catch(() => {
+      // Silent by design: sync retries on next cycle.
+    });
+
+    const interval = setInterval(() => {
+      gymApi.flushPendingSync().catch(() => {
+        // Silent by design: sync retries on next cycle.
+      });
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

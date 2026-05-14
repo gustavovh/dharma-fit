@@ -1,5 +1,5 @@
 import type { Request, Response, Router } from "express";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { adminUsers, adminSessions } from "@workspace/db/schema";
 import { jwtSign, jwtSignRefreshToken, jwtVerify } from "../../middlewares/jwt.js";
@@ -7,7 +7,12 @@ import { authenticateAdmin } from "../../middlewares/auth.js";
 import { ROLE_PERMISSIONS } from "@workspace/admin-sdk";
 import bcrypt from "bcrypt";
 
-export async function createAdminUser(email: string, password: string, name: string) {
+export async function createAdminUser(
+  email: string,
+  password: string,
+  name: string,
+  role: string = "admin"
+) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const [user] = await db
@@ -16,7 +21,7 @@ export async function createAdminUser(email: string, password: string, name: str
       email,
       name,
       password_hash: hashedPassword,
-      role: "admin",
+      role,
     })
     .returning();
 
@@ -141,14 +146,58 @@ export async function createAuthRoutes(router: Router) {
         });
       }
 
-      // Aquí obtendríamos el usuario de la sesión
-      // Por ahora es una implementación básica
-      const newAccessToken = jwtSignRefreshToken(); // Esto debería ser el nuevo access token
+      const refreshTokenHash = Buffer.from(refresh_token).toString("base64");
+
+      const [session] = await db
+        .select()
+        .from(adminSessions)
+        .where(
+          and(
+            eq(adminSessions.refresh_token_hash, refreshTokenHash),
+            gt(adminSessions.refresh_expires_at, new Date())
+          )
+        );
+
+      if (!session) {
+        return res.status(401).json({
+          success: false,
+          error: "Refresh session not found or expired",
+        });
+      }
+
+      const [user] = await db
+        .select()
+        .from(adminUsers)
+        .where(eq(adminUsers.id, session.user_id));
+
+      if (!user || user.status !== "active") {
+        return res.status(401).json({
+          success: false,
+          error: "User not found or inactive",
+        });
+      }
+
+      const permissions = ROLE_PERMISSIONS[user.role] || [];
+      const newAccessToken = jwtSign({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        permissions,
+      });
+
+      await db
+        .update(adminSessions)
+        .set({
+          token_hash: Buffer.from(newAccessToken).toString("base64"),
+          expires_at: new Date(Date.now() + 15 * 60 * 1000),
+        })
+        .where(eq(adminSessions.id, session.id));
 
       res.json({
         success: true,
         data: {
           access_token: newAccessToken,
+          expires_in: 900,
         },
         timestamp: new Date(),
       });

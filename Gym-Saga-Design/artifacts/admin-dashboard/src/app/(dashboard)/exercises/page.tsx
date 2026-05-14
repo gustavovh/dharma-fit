@@ -29,7 +29,7 @@ export default function ExercisesPage() {
     };
 
     fetchExercises();
-  }, [api]);
+  }, []);
 
   const filteredExercises = exercises.filter((ex) =>
     ex.name.toLowerCase().includes(search.toLowerCase()) ||

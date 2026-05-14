@@ -6,10 +6,8 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
 import { LineChart } from "@/components/LineChart";
-import { getMeasurements } from "@/lib/storage";
+import { gymApi } from "@/lib/api";
 import { Measurement } from "@/types";
-
-const CURRENT_USER_ID = "u1";
 
 export default function Progress() {
   const colors = useColors();
@@ -17,7 +15,14 @@ export default function Progress() {
 
   useEffect(() => {
     (async () => {
-      setMeasurements(await getMeasurements(CURRENT_USER_ID));
+      try {
+        const res = await gymApi.getMeasurements();
+        if (res.success) {
+          setMeasurements(res.data.slice().reverse());
+        }
+      } catch (error) {
+        console.error("Failed to fetch measurements:", error);
+      }
     })();
   }, []);
 

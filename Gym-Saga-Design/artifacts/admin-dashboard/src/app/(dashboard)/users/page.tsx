@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, ChevronRight, User as UserIcon, Shield } from "lucide-react";
+import { Plus, Search, ChevronRight, User as UserIcon, Shield, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAdminApi } from "@/hooks/useApi";
 import type { AdminUser } from "@workspace/admin-sdk";
@@ -30,7 +30,7 @@ export default function UsersPage() {
     };
 
     fetchUsers();
-  }, [api]);
+  }, []);
 
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -168,7 +168,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-400">
-                      {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : "Never"}
+                      {user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link

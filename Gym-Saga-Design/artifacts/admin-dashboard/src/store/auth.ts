@@ -42,6 +42,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   hydrateFromStorage: () => {
+    if (typeof window === "undefined") return;
     const token = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
     if (token) {

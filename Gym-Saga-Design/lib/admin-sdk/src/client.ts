@@ -22,6 +22,10 @@ import type {
   Routine,
   CreateAthlete,
   CreateMeasurement,
+  CreateRoutine,
+  CoachDashboard,
+  AthleteObservation,
+  CreateAthleteObservation,
 } from "./types/index";
 
 export interface ApiClientOptions {
@@ -62,13 +66,24 @@ export class AdminApiClient {
     this.token = token;
   }
 
-  private getHeaders(): Record<string, string> {
+  private getCurrentToken(): string | null {
+    if (this.token) return this.token;
+
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("access_token");
+    }
+
+    return null;
+  }
+
+  private getHeaders(tokenOverride?: string | null): Record<string, string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
+    const tokenToUse = tokenOverride ?? this.getCurrentToken();
+    if (tokenToUse) {
+      headers["Authorization"] = `Bearer ${tokenToUse}`;
     }
 
     return headers;
@@ -96,13 +111,60 @@ export class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token expirado - implementar refresh
+          if (typeof window !== "undefined") {
+            const refreshToken = localStorage.getItem("refresh_token");
+
+            if (refreshToken) {
+              const refreshResponse = await fetch(`${this.baseURL}/api/admin/auth/refresh`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+              });
+
+              if (refreshResponse.ok) {
+                const refreshData = (await refreshResponse.json()) as {
+                  data?: { access_token?: string };
+                };
+
+                const newAccessToken = refreshData?.data?.access_token;
+
+                if (newAccessToken) {
+                  this.token = newAccessToken;
+                  await this.onTokenRefresh?.(newAccessToken);
+
+                  const retryResponse = await fetch(url, {
+                    method,
+                    headers: {
+                      ...this.getHeaders(newAccessToken),
+                      ...(options?.headers || {}),
+                    },
+                    body:
+                      options?.body && method !== "GET"
+                        ? JSON.stringify(options.body)
+                        : undefined,
+                  });
+
+                  if (!retryResponse.ok) {
+                    throw new Error(`API Error: ${retryResponse.status}`);
+                  }
+
+                  return (await retryResponse.json()) as T;
+                }
+              }
+            }
+
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+          }
+
           throw new Error("Unauthorized");
         }
         throw new Error(`API Error: ${response.status}`);
       }
 
-      return response.json();
+      return (await response.json()) as T;
     } catch (error) {
       throw error;
     }
@@ -331,6 +393,16 @@ export class AdminApiClient {
     return this.request<{ data: Routine[] }>(`/api/admin/gym/athletes/${id}/routines`);
   }
 
+  async createAthleteRoutine(athleteId: string, data: CreateRoutine) {
+    return this.request<{ data: Routine }>(
+      `/api/admin/gym/athletes/${athleteId}/routines`,
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+  }
+
   async addMeasurement(athleteId: string, data: CreateMeasurement) {
     return this.request<{ data: Measurement }>(
       `/api/admin/gym/athletes/${athleteId}/measurements`,
@@ -343,6 +415,26 @@ export class AdminApiClient {
 
   async getExercises() {
     return this.request<{ data: Exercise[] }>("/api/admin/gym/exercises");
+  }
+
+  async getCoachDashboard() {
+    return this.request<{ data: CoachDashboard }>("/api/admin/gym/coach/dashboard");
+  }
+
+  async getAthleteObservations(athleteId: string) {
+    return this.request<{ data: AthleteObservation[] }>(
+      `/api/admin/gym/athletes/${athleteId}/observations`
+    );
+  }
+
+  async createAthleteObservation(athleteId: string, data: CreateAthleteObservation) {
+    return this.request<{ data: { observation: AthleteObservation } }>(
+      `/api/admin/gym/athletes/${athleteId}/observations`,
+      {
+        method: "POST",
+        body: data,
+      }
+    );
   }
 
   async getUser(id: string) {

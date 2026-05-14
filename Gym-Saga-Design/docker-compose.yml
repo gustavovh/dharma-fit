@@ -70,6 +70,7 @@ services:
       redis:
         condition: service_healthy
     environment:
+      PORT: ${PORT:-3001}
       NODE_ENV: ${NODE_ENV:-development}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-gym_saga}
       REDIS_URL: redis://redis:6379
@@ -85,7 +86,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./artifacts/api-server/src:/app/src
+      - ./artifacts/api-server/src:/app/artifacts/api-server/src
     networks:
       - gym-saga-network
     profiles:
@@ -100,12 +101,13 @@ services:
     depends_on:
       - api-server
     environment:
+      BACKEND_API_URL: ${BACKEND_API_URL:-http://api-server:3001}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "3002:3000"
     volumes:
-      - ./artifacts/admin-dashboard/src:/app/src
+      - ./artifacts/admin-dashboard/src:/app/artifacts/admin-dashboard/src
     networks:
       - gym-saga-network
     profiles:

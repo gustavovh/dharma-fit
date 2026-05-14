@@ -12,6 +12,13 @@ declare global {
         permissions: string[];
       };
       adminToken?: string;
+      athlete?: {
+        id: string;
+        email: string;
+        role: string;
+        permissions: string[];
+      };
+      athleteToken?: string;
     }
   }
 }
@@ -90,4 +97,47 @@ export function requireRole(...roles: string[]) {
 
     next();
   };
+}
+
+export function authenticateAthlete(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      success: false,
+      error: "Missing or invalid authorization header",
+    });
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const payload = jwtVerify(token) as JwtPayload;
+
+    if (payload.role !== "athlete") {
+      return res.status(403).json({
+        success: false,
+        error: "Athlete role required",
+      });
+    }
+
+    req.athlete = {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      permissions: payload.permissions,
+    };
+
+    req.athleteToken = token;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: "Invalid or expired token",
+    });
+  }
 }

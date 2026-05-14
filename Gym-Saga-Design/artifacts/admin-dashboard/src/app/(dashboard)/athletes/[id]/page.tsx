@@ -10,11 +10,12 @@ import {
   ChevronRight,
   TrendingUp,
   Weight,
-  Dumbbell
+  Dumbbell,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminApi } from "@/hooks/useApi";
-import type { Athlete, Measurement, Routine } from "@workspace/admin-sdk";
+import type { Athlete, Measurement, Routine, Exercise } from "@workspace/admin-sdk";
 import { 
   LineChart, 
   Line, 
@@ -31,6 +32,19 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const [athlete, setAthlete] = useState<(Athlete & { measurements: Measurement[] }) | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [savingRoutine, setSavingRoutine] = useState(false);
+  const [routineError, setRoutineError] = useState<string | null>(null);
+  const [observations, setObservations] = useState<Array<{ id: string; type: string; content: string; date: string }>>([]);
+  const [observationText, setObservationText] = useState("");
+  const [observationType, setObservationType] = useState<"Nota" | "Alerta" | "Progreso">("Progreso");
+  const [savingObservation, setSavingObservation] = useState(false);
+  const [observationError, setObservationError] = useState<string | null>(null);
+  const [routineForm, setRoutineForm] = useState({
+    name: "",
+    day_of_week: 1,
+    exercises: [{ exercise_id: "", sets: 3, reps: "12" }],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const api = useAdminApi();
@@ -39,17 +53,17 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [athleteRes, routinesRes] = await Promise.all([
+        const [athleteRes, routinesRes, exercisesRes, observationsRes] = await Promise.all([
           api.getAthlete(id),
-          api.getAthleteRoutines(id)
+          api.getAthleteRoutines(id),
+          api.getExercises(),
+          api.getAthleteObservations(id),
         ]);
 
-        if (athleteRes.success) {
-          setAthlete(athleteRes.data || null);
-        }
-        if (routinesRes.success) {
-          setRoutines(routinesRes.data || []);
-        }
+        setAthlete((athleteRes as any).data || null);
+        setRoutines((routinesRes as any).data || []);
+        setExercises((exercisesRes as any).data || []);
+        setObservations((observationsRes as any).data || []);
       } catch (err: any) {
         console.error("Failed to fetch athlete data:", err);
         setError(err.message || "Failed to load athlete profile");
@@ -60,6 +74,96 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
 
     fetchData();
   }, [api, id]);
+
+  const updateRoutineExercise = (index: number, field: string, value: string) => {
+    setRoutineForm((prev) => {
+      const nextItems = [...prev.exercises];
+      const current = { ...nextItems[index] } as any;
+      current[field] = field === "sets" ? Number(value) : value;
+      nextItems[index] = current;
+      return { ...prev, exercises: nextItems };
+    });
+  };
+
+  const addRoutineExercise = () => {
+    setRoutineForm((prev) => ({
+      ...prev,
+      exercises: [...prev.exercises, { exercise_id: "", sets: 3, reps: "12" }],
+    }));
+  };
+
+  const removeRoutineExercise = (index: number) => {
+    setRoutineForm((prev) => ({
+      ...prev,
+      exercises: prev.exercises.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleAssignRoutine = async () => {
+    try {
+      setRoutineError(null);
+      setSavingRoutine(true);
+
+      if (!routineForm.name.trim()) {
+        setRoutineError("Routine name is required");
+        return;
+      }
+
+      if (routineForm.exercises.some((x) => !x.exercise_id)) {
+        setRoutineError("Select an exercise for each row");
+        return;
+      }
+
+      await api.createAthleteRoutine(id, {
+        name: routineForm.name,
+        day_of_week: Number(routineForm.day_of_week),
+        exercises: routineForm.exercises.map((ex, idx) => ({
+          exercise_id: ex.exercise_id,
+          sets: Number(ex.sets),
+          reps: ex.reps,
+          order: idx,
+        })),
+      } as any);
+
+      const routinesRes = await api.getAthleteRoutines(id);
+      setRoutines((routinesRes as any).data || []);
+      setRoutineForm({
+        name: "",
+        day_of_week: 1,
+        exercises: [{ exercise_id: "", sets: 3, reps: "12" }],
+      });
+    } catch (err: any) {
+      setRoutineError(err?.message || "Failed to assign routine");
+    } finally {
+      setSavingRoutine(false);
+    }
+  };
+
+  const handleCreateObservation = async () => {
+    try {
+      if (!observationText.trim()) {
+        setObservationError("Escribe una observacion para enviar feedback.");
+        return;
+      }
+
+      setSavingObservation(true);
+      setObservationError(null);
+
+      await api.createAthleteObservation(id, {
+        type: observationType,
+        content: observationText.trim(),
+      });
+
+      const observationsRes = await api.getAthleteObservations(id);
+      setObservations((observationsRes as any).data || []);
+      setObservationText("");
+      setObservationType("Progreso");
+    } catch (err: any) {
+      setObservationError(err?.message || "No se pudo enviar la observacion.");
+    } finally {
+      setSavingObservation(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -250,6 +354,149 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
             <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20">
               Update Training Plan
             </button>
+
+            <div className="mt-6 border-t border-slate-700/60 pt-6 space-y-4">
+              <h4 className="text-sm font-black tracking-widest uppercase text-slate-400">Assign New Routine</h4>
+
+              {routineError && (
+                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-400 text-xs font-semibold">
+                  {routineError}
+                </div>
+              )}
+
+              <input
+                value={routineForm.name}
+                onChange={(e) => setRoutineForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Routine name"
+                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+
+              <select
+                value={routineForm.day_of_week}
+                onChange={(e) => setRoutineForm((prev) => ({ ...prev, day_of_week: Number(e.target.value) }))}
+                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value={1}>Monday</option>
+                <option value={2}>Tuesday</option>
+                <option value={3}>Wednesday</option>
+                <option value={4}>Thursday</option>
+                <option value={5}>Friday</option>
+                <option value={6}>Saturday</option>
+                <option value={7}>Sunday</option>
+              </select>
+
+              <div className="space-y-2">
+                {routineForm.exercises.map((row, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                    <select
+                      value={row.exercise_id}
+                      onChange={(e) => updateRoutineExercise(index, "exercise_id", e.target.value)}
+                      className="col-span-6 bg-slate-800/70 border border-slate-700 rounded-xl py-2 px-2 text-xs text-white"
+                    >
+                      <option value="">Select exercise</option>
+                      {exercises.map((exercise) => (
+                        <option key={exercise.id} value={exercise.id}>
+                          {exercise.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      value={row.sets}
+                      type="number"
+                      min={1}
+                      onChange={(e) => updateRoutineExercise(index, "sets", e.target.value)}
+                      className="col-span-2 bg-slate-800/70 border border-slate-700 rounded-xl py-2 px-2 text-xs text-white"
+                      placeholder="Sets"
+                    />
+                    <input
+                      value={row.reps}
+                      onChange={(e) => updateRoutineExercise(index, "reps", e.target.value)}
+                      className="col-span-3 bg-slate-800/70 border border-slate-700 rounded-xl py-2 px-2 text-xs text-white"
+                      placeholder="Reps"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeRoutineExercise(index)}
+                      className="col-span-1 text-xs text-red-400 hover:text-red-300"
+                      disabled={routineForm.exercises.length === 1}
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={addRoutineExercise}
+                className="w-full py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700 hover:bg-slate-700"
+              >
+                Add Exercise Row
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAssignRoutine}
+                disabled={savingRoutine}
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40 text-white text-sm font-bold"
+              >
+                {savingRoutine ? "Saving..." : "Assign Routine"}
+              </button>
+            </div>
+
+            <div className="mt-8 border-t border-slate-700/60 pt-6 space-y-4">
+              <h4 className="text-sm font-black tracking-widest uppercase text-slate-400 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Coach Feedback
+              </h4>
+
+              {observationError && (
+                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-400 text-xs font-semibold">
+                  {observationError}
+                </div>
+              )}
+
+              <select
+                value={observationType}
+                onChange={(e) => setObservationType(e.target.value as "Nota" | "Alerta" | "Progreso")}
+                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white"
+              >
+                <option value="Progreso">Progreso</option>
+                <option value="Nota">Nota</option>
+                <option value="Alerta">Alerta</option>
+              </select>
+
+              <textarea
+                value={observationText}
+                onChange={(e) => setObservationText(e.target.value)}
+                placeholder="Ej: Muy buen ritmo hoy. Mantener tecnica y subir 2.5kg la proxima sesion."
+                className="w-full h-24 bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white"
+              />
+
+              <button
+                type="button"
+                onClick={handleCreateObservation}
+                disabled={savingObservation}
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-900/40 text-white text-sm font-bold"
+              >
+                {savingObservation ? "Enviando..." : "Enviar Observacion"}
+              </button>
+
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                {observations.map((observation) => (
+                  <div key={observation.id} className="bg-slate-800/60 border border-slate-700 rounded-xl p-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] uppercase tracking-widest text-blue-300">{observation.type}</span>
+                      <span className="text-[11px] text-slate-500">{new Date(observation.date).toLocaleString()}</span>
+                    </div>
+                    <p className="text-xs text-slate-200 mt-1">{observation.content}</p>
+                  </div>
+                ))}
+                {!observations.length && (
+                  <p className="text-xs text-slate-500">Sin feedbacks enviados para este atleta.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

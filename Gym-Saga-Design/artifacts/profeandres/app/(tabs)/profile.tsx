@@ -5,20 +5,33 @@ import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { Avatar } from "@/components/Avatar";
-import { getUser } from "@/lib/storage";
 import { User } from "@/types";
 import { AppIcon, AppIconName } from "@/components/AppIcon";
-
-const CURRENT_USER_ID = "u1";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { gymApi } from "@/lib/api";
 
 export default function Profile() {
   const colors = useColors();
   const [user, setUser] = useState<User | undefined>();
   const [syncEnabled, setSyncEnabled] = useState(true);
 
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("atleta_token");
+    await AsyncStorage.removeItem("atleta_id");
+    router.replace("/login");
+  };
+
   useEffect(() => {
     (async () => {
-      setUser(await getUser(CURRENT_USER_ID));
+      try {
+        const res = await gymApi.getMe();
+        if (res.success) setUser(res.data);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
     })();
   }, []);
 
@@ -85,7 +98,10 @@ export default function Profile() {
           </View>
         </Card>
 
-        <Pressable style={[styles.logoutButton, { borderColor: colors.destructive }]}>
+        <Pressable 
+          onPress={handleLogout}
+          style={[styles.logoutButton, { borderColor: colors.destructive }]}
+        >
           <AppIcon name="log-out-outline" size={20} color={colors.destructive} />
           <Text style={[styles.logoutText, { color: colors.destructive }]}>Cerrar Sesión</Text>
         </Pressable>

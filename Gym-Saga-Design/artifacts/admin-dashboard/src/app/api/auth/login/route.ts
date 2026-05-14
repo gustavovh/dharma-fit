@@ -5,10 +5,11 @@
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
+  const backendUrl = process.env.BACKEND_API_URL || "http://localhost:3001";
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/admin/auth/login`,
+      `${backendUrl}/api/admin/auth/login`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

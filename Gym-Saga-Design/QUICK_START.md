@@ -16,9 +16,17 @@ cd Gym-Saga-Design
 # Start database, cache, and storage
 docker-compose up -d
 
+# Start API + Admin Dashboard (full stack)
+docker-compose --profile full up -d
+
 # Wait for services to be healthy (~30 seconds)
 docker-compose ps
 ```
+
+Important variables for full stack:
+- `PORT=3001` in API container (required)
+- `BACKEND_API_URL=http://api-server:3001` in dashboard container
+- `NEXT_PUBLIC_API_URL=http://localhost:3001` for browser requests
 
 ### Verify Services
 ```bash

@@ -27,7 +27,7 @@ export default function BuildsPage() {
     };
 
     fetchBuilds();
-  }, [api]);
+  }, []);
 
   const filteredBuilds = builds.filter((b) =>
     b.version.toLowerCase().includes(search.toLowerCase()) ||

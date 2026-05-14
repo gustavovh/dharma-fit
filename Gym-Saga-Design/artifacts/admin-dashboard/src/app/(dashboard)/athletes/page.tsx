@@ -30,7 +30,7 @@ export default function AthletesPage() {
     };
 
     fetchAthletes();
-  }, [api]);
+  }, []);
 
   const filteredAthletes = athletes.filter((a) =>
     a.name.toLowerCase().includes(search.toLowerCase()) ||

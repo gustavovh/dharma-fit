@@ -4,7 +4,7 @@ import { useColors } from "@/hooks/useColors";
 import { Feather } from "@expo/vector-icons";
 
 interface StatusPillProps {
-  status: "activa" | "por_vencer" | "vencida" | "paid" | "pending" | "overdue";
+  status: "activa" | "por_vencer" | "vencida" | "cancelada" | "paid" | "pending" | "overdue";
 }
 
 export function StatusPill({ status }: StatusPillProps) {
@@ -21,6 +21,8 @@ export function StatusPill({ status }: StatusPillProps) {
       case "vencida":
       case "overdue":
         return { label: status === "vencida" ? "Vencida" : "Atrasado", color: colors.destructive, bg: `${colors.destructive}20` };
+      case "cancelada":
+        return { label: "Cancelada", color: colors.destructive, bg: `${colors.destructive}20` };
       default:
         return { label: status, color: colors.mutedForeground, bg: colors.muted };
     }

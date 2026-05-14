@@ -5,7 +5,7 @@ export interface User {
   avatar?: string;
   trainerId?: string;
   planId?: string;
-  planStatus: "activa" | "por_vencer" | "vencida";
+  planStatus: "activa" | "por_vencer" | "vencida" | "cancelada";
   planExpiry?: string;
   weightKg?: number;
   bodyFatPct?: number;

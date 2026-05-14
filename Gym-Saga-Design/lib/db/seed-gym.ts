@@ -1,5 +1,7 @@
 import { db } from "@workspace/db";
 import { 
+  adminUsers,
+  adminUserTrainers,
   athletes, 
   trainers, 
   plans, 
@@ -11,6 +13,7 @@ import {
   observations
 } from "@workspace/db/schema";
 import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
 
 async function seedGym() {
   console.log("🏋️ Comenzando seeder de GYM...\n");
@@ -32,6 +35,24 @@ async function seedGym() {
       { name: "Laura Fit", specialty: "Crossfit", avatar: "LF", email: "laura@gym.local" },
     ]).returning();
     console.log("✅ Entrenadores creados");
+
+    // 2.1 Vinculo explicito admin_user -> trainer
+    const [admin] = await db
+      .select({ id: adminUsers.id })
+      .from(adminUsers)
+      .where(eq(adminUsers.email, "admin@gym-saga.local"))
+      .limit(1);
+
+    if (admin) {
+      await db
+        .insert(adminUserTrainers)
+        .values({
+          admin_user_id: admin.id,
+          trainer_id: t1.id,
+        })
+        .onConflictDoNothing();
+      console.log("✅ Vinculo admin_user -> trainer creado");
+    }
 
     // 3. Atletas
     console.log("🏃 Creando atletas...");
@@ -105,8 +126,8 @@ async function seedGym() {
     ]);
     
     await db.insert(attendance).values([
-      { athlete_id: u1.id, date: new Date(), time: "08:00" },
-      { athlete_id: u1.id, date: new Date(Date.now() - 86400000), time: "09:00" },
+      { trainer_id: t1.id, athlete_id: u1.id, date: new Date(), time: "08:00" },
+      { trainer_id: t1.id, athlete_id: u1.id, date: new Date(Date.now() - 86400000), time: "09:00" },
     ]);
     console.log("✅ Historial creado");
 

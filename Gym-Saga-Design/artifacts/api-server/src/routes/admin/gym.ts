@@ -1,11 +1,177 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { athletes, plans, trainers, measurements, routines, routineExercises, exercises } from "@workspace/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import {
+  athletes,
+  measurements,
+  routines,
+  routineExercises,
+  exercises,
+  attendance,
+  observations,
+} from "@workspace/db/schema";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { authenticateAdmin, requirePermission } from "../../middlewares/auth.js";
+import {
+  requireCoachAthleteOr404,
+  requireCoachTrainerOr403,
+} from "../../lib/coach-scope.js";
 import bcrypt from "bcrypt";
 
 export async function createAdminGymRoutes(router: Router) {
+  // COACH OPERATIONS DASHBOARD
+  router.get(
+    "/admin/gym/coach/dashboard",
+    authenticateAdmin,
+    requirePermission("view_users"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const roster = await db
+          .select({
+            id: athletes.id,
+            name: athletes.name,
+            email: athletes.email,
+            plan_status: athletes.plan_status,
+            updated_at: athletes.updated_at,
+          })
+          .from(athletes)
+          .where(eq(athletes.trainer_id, trainerId))
+          .orderBy(desc(athletes.updated_at));
+
+        const athleteIds = roster.map((item) => item.id);
+        const now = new Date();
+        const startToday = new Date(now);
+        startToday.setHours(0, 0, 0, 0);
+        const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+        const attendanceRows = athleteIds.length
+          ? await db
+              .select({
+                athlete_id: attendance.athlete_id,
+                date: attendance.date,
+              })
+              .from(attendance)
+              .where(
+                and(
+                  eq(attendance.trainer_id, trainerId),
+                  inArray(attendance.athlete_id, athleteIds)
+                )
+              )
+              .orderBy(desc(attendance.date))
+          : [];
+
+        const attendanceByAthlete = new Map<string, Date[]>();
+        for (const row of attendanceRows) {
+          const bucket = attendanceByAthlete.get(row.athlete_id) ?? [];
+          bucket.push(new Date(row.date));
+          attendanceByAthlete.set(row.athlete_id, bucket);
+        }
+
+        const activeToday = roster.filter((athlete) => {
+          const dates = attendanceByAthlete.get(athlete.id) ?? [];
+          return dates.some((date) => date >= startToday);
+        });
+
+        const inactiveThreeDays = roster.filter((athlete) => {
+          const dates = attendanceByAthlete.get(athlete.id) ?? [];
+          const last = dates[0];
+          return !last || last < threeDaysAgo;
+        });
+
+        const adherenceDrop = roster
+          .map((athlete) => {
+            const dates = attendanceByAthlete.get(athlete.id) ?? [];
+            const currentWeek = dates.filter((date) => date >= sevenDaysAgo).length;
+            const previousWeek = dates.filter(
+              (date) => date >= fourteenDaysAgo && date < sevenDaysAgo
+            ).length;
+            const hasDrop = previousWeek >= 2 && currentWeek <= Math.floor(previousWeek * 0.7);
+
+            return {
+              athlete_id: athlete.id,
+              athlete_name: athlete.name,
+              current_week_sessions: currentWeek,
+              previous_week_sessions: previousWeek,
+              has_drop: hasDrop,
+            };
+          })
+          .filter((item) => item.has_drop);
+
+        const recentSessions = athleteIds.length
+          ? await db
+              .select({
+                id: attendance.id,
+                athlete_id: attendance.athlete_id,
+                athlete_name: athletes.name,
+                date: attendance.date,
+                time: attendance.time,
+              })
+              .from(attendance)
+              .innerJoin(athletes, eq(attendance.athlete_id, athletes.id))
+              .where(eq(athletes.trainer_id, trainerId))
+              .orderBy(desc(attendance.date))
+              .limit(20)
+          : [];
+
+        const recentFeedbacks = await db
+          .select({
+            id: observations.id,
+            athlete_id: observations.athlete_id,
+            athlete_name: athletes.name,
+            type: observations.type,
+            content: observations.content,
+            date: observations.date,
+          })
+          .from(observations)
+          .innerJoin(athletes, eq(observations.athlete_id, athletes.id))
+          .where(eq(observations.trainer_id, trainerId))
+          .orderBy(desc(observations.date))
+          .limit(20);
+
+        const attentionAthletes = roster
+          .filter((athlete) => {
+            const isInactive = inactiveThreeDays.some((item) => item.id === athlete.id);
+            const isDropping = adherenceDrop.some((item) => item.athlete_id === athlete.id);
+            return isInactive || isDropping;
+          })
+          .map((athlete) => ({
+            id: athlete.id,
+            name: athlete.name,
+            reason: inactiveThreeDays.some((item) => item.id === athlete.id)
+              ? "Sin entrenar hace 3+ dias"
+              : "Caida de adherencia semanal",
+          }));
+
+        return res.json({
+          success: true,
+          data: {
+            totals: {
+              roster: roster.length,
+              active_today: activeToday.length,
+              inactive_3d: inactiveThreeDays.length,
+              adherence_drop: adherenceDrop.length,
+              attention_required: attentionAthletes.length,
+            },
+            active_today: activeToday,
+            inactive_3d: inactiveThreeDays,
+            adherence_drop: adherenceDrop,
+            attention_required: attentionAthletes,
+            recent_sessions: recentSessions,
+            recent_feedbacks: recentFeedbacks,
+          },
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error("Failed to fetch coach dashboard:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
   // ATHLETES
   // List all athletes
   router.get(
@@ -14,11 +180,15 @@ export async function createAdminGymRoutes(router: Router) {
     requirePermission("view_users"), // Using existing permission for now
     async (req: Request, res: Response) => {
       try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
         const data = await db
           .select({
             id: athletes.id,
             email: athletes.email,
             name: athletes.name,
+            trainer_id: athletes.trainer_id,
             plan_status: athletes.plan_status,
             plan_expiry: athletes.plan_expiry,
             weight_kg: athletes.weight_kg,
@@ -26,6 +196,7 @@ export async function createAdminGymRoutes(router: Router) {
             created_at: athletes.created_at,
           })
           .from(athletes)
+          .where(eq(athletes.trainer_id, trainerId))
           .orderBy(desc(athletes.created_at));
 
         res.json({
@@ -47,11 +218,14 @@ export async function createAdminGymRoutes(router: Router) {
     requirePermission("view_users"),
     async (req: Request, res: Response) => {
       try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
         const { id } = req.params;
         const [athlete] = await db
           .select()
           .from(athletes)
-          .where(eq(athletes.id, id));
+          .where(and(eq(athletes.id, id), eq(athletes.trainer_id, trainerId)));
 
         if (!athlete) {
           return res.status(404).json({ success: false, error: "Athlete not found" });
@@ -87,7 +261,10 @@ export async function createAdminGymRoutes(router: Router) {
     requirePermission("create_user"),
     async (req: Request, res: Response) => {
       try {
-        const { email, password, name, plan_id, trainer_id } = req.body;
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { email, password, name, plan_id } = req.body;
 
         if (!email || !password || !name) {
           return res.status(400).json({ success: false, error: "Missing required fields" });
@@ -102,7 +279,7 @@ export async function createAdminGymRoutes(router: Router) {
             password_hash: hashedPassword,
             name,
             plan_id,
-            trainer_id,
+            trainer_id: trainerId,
             plan_status: "activa",
           })
           .returning();
@@ -114,6 +291,20 @@ export async function createAdminGymRoutes(router: Router) {
         });
       } catch (error) {
         console.error("Failed to create athlete:", error);
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "cause" in error
+        ) {
+          const cause = (error as { cause?: { code?: string; detail?: string } }).cause;
+          if (cause?.code === "23505") {
+            return res.status(409).json({
+              success: false,
+              error: "Email already exists",
+            });
+          }
+        }
+
         res.status(500).json({ success: false, error: "Internal server error" });
       }
     }
@@ -127,8 +318,13 @@ export async function createAdminGymRoutes(router: Router) {
     requirePermission("edit_user"),
     async (req: Request, res: Response) => {
       try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
         const { id } = req.params;
         const { weight_kg, body_fat_pct, notes } = req.body;
+
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
 
         const [newMeasurement] = await db
           .insert(measurements)
@@ -170,11 +366,17 @@ export async function createAdminGymRoutes(router: Router) {
     requirePermission("view_users"),
     async (req: Request, res: Response) => {
       try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
         const { id } = req.params;
+
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
+
         const athleteRoutines = await db
           .select()
           .from(routines)
-          .where(eq(routines.athlete_id, id))
+          .where(and(eq(routines.athlete_id, id), eq(routines.trainer_id, trainerId)))
           .orderBy(routines.day_of_week);
 
         // Fetch exercises for each routine
@@ -208,6 +410,162 @@ export async function createAdminGymRoutes(router: Router) {
       } catch (error) {
         console.error("Failed to fetch routines:", error);
         res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // Assign routine to athlete
+  router.post(
+    "/admin/gym/athletes/:id/routines",
+    authenticateAdmin,
+    requirePermission("edit_user"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { id } = req.params;
+        const { name, day_of_week, exercises: routineItems } = req.body;
+
+        if (!name || day_of_week === undefined || !Array.isArray(routineItems) || routineItems.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: "name, day_of_week and at least one exercise are required",
+          });
+        }
+
+        const day = Number(day_of_week);
+        if (Number.isNaN(day) || day < 1 || day > 7) {
+          return res.status(400).json({
+            success: false,
+            error: "day_of_week must be between 1 and 7",
+          });
+        }
+
+        const [athlete] = await db
+          .select({ id: athletes.id })
+          .from(athletes)
+          .where(and(eq(athletes.id, id), eq(athletes.trainer_id, trainerId)));
+
+        if (!athlete) {
+          return res.status(404).json({
+            success: false,
+            error: "Athlete not found",
+          });
+        }
+
+        const [newRoutine] = await db
+          .insert(routines)
+          .values({
+            athlete_id: id,
+            trainer_id: trainerId,
+            name,
+            day_of_week: day,
+          })
+          .returning();
+
+        const mappedExercises = routineItems.map((item: any, index: number) => ({
+          routine_id: newRoutine.id,
+          exercise_id: item.exercise_id,
+          sets: Number(item.sets) || 3,
+          reps: String(item.reps || "12"),
+          weight_kg: item.weight_kg ? String(item.weight_kg) : null,
+          rest_seconds: item.rest_seconds ? Number(item.rest_seconds) : null,
+          order: item.order !== undefined ? Number(item.order) : index,
+          name_override: item.name_override || null,
+        }));
+
+        const createdExercises = await db
+          .insert(routineExercises)
+          .values(mappedExercises)
+          .returning();
+
+        res.status(201).json({
+          success: true,
+          data: {
+            ...newRoutine,
+            exercises: createdExercises,
+          },
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error("Failed to assign routine:", error);
+        res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // OBSERVATIONS / FEEDBACK
+  router.get(
+    "/admin/gym/athletes/:id/observations",
+    authenticateAdmin,
+    requirePermission("view_users"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { id } = req.params;
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
+
+        const rows = await db
+          .select()
+          .from(observations)
+          .where(and(eq(observations.athlete_id, id), eq(observations.trainer_id, trainerId)))
+          .orderBy(desc(observations.date))
+          .limit(100);
+
+        return res.json({ success: true, data: rows, timestamp: new Date() });
+      } catch (error) {
+        console.error("Failed to fetch observations:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  router.post(
+    "/admin/gym/athletes/:id/observations",
+    authenticateAdmin,
+    requirePermission("edit_user"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { id } = req.params;
+        const { type = "Nota", content } = req.body;
+
+        if (!content || typeof content !== "string") {
+          return res.status(400).json({ success: false, error: "content is required" });
+        }
+
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
+
+        const [created] = await db
+          .insert(observations)
+          .values({
+            athlete_id: id,
+            trainer_id: trainerId,
+            type,
+            content: content.trim(),
+          })
+          .returning();
+
+        return res.status(201).json({
+          success: true,
+          data: {
+            observation: created,
+            notification: {
+              title: "Tu entrenador dejo una observacion",
+              message: content.trim(),
+              type,
+            },
+          },
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error("Failed to create observation:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
       }
     }
   );

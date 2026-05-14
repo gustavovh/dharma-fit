@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/auth";
 import { AdminApiClient } from "@workspace/admin-sdk";
 
@@ -8,22 +8,32 @@ import { AdminApiClient } from "@workspace/admin-sdk";
  */
 export function useAdminApi() {
   const { token, setToken } = useAuthStore();
+  const clientRef = useRef<AdminApiClient | null>(null);
 
   // Robust token resolution
   const currentToken = token || (typeof window !== "undefined" ? localStorage.getItem("access_token") : null);
 
-  const client = new AdminApiClient({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    token: currentToken || "",
-    onTokenRefresh: async (newToken) => {
-      setToken(newToken);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("access_token", newToken);
-      }
-    },
-  });
+  if (!clientRef.current) {
+    clientRef.current = new AdminApiClient({
+      baseURL:
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost:3001",
+      token: currentToken || "",
+      onTokenRefresh: async (newToken) => {
+        setToken(newToken);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("access_token", newToken);
+        }
+      },
+    });
+  }
 
-  return client;
+  useEffect(() => {
+    clientRef.current?.setToken(currentToken || "");
+  }, [currentToken]);
+
+  return clientRef.current;
 }
 
 /**

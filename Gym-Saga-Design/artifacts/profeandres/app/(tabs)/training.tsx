@@ -8,7 +8,6 @@ import { AppHeader } from "@/components/RoleHeader";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Card } from "@/components/Card";
 import { gymApi } from "@/lib/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
 import { Routine, RoutineExercise } from "@/types";
@@ -22,18 +21,16 @@ export default function Training() {
   const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const id = await AsyncStorage.getItem("atleta_id");
-        if (id) {
-          const res = await gymApi.getRoutines(id);
-          if (res.success) {
-            setRoutines(res.data);
-            const today = ((new Date().getDay() + 6) % 7) + 1;
-            setActiveRoutine(res.data.find((r: any) => r.dayOfWeek === today) || res.data[0]);
-          }
+        const res = await gymApi.getRoutines();
+        if (res.success) {
+          setRoutines(res.data);
+          const today = ((new Date().getDay() + 6) % 7) + 1;
+          setActiveRoutine(res.data.find((r: any) => r.dayOfWeek === today) || res.data[0]);
         }
       } catch (err) {
         console.error("Failed to fetch routines:", err);
@@ -66,11 +63,16 @@ export default function Training() {
 
     // API Call
     try {
-      await gymApi.markComplete(exerciseId, newStatus);
+      const response = await gymApi.markComplete(exerciseId, newStatus);
+      if (response.queued) {
+        setSyncStatus("Sin conexión: cambio guardado y pendiente de sincronización.");
+      } else {
+        setSyncStatus("Sincronizado");
+      }
     } catch (err) {
       console.error("Failed to sync exercise status:", err);
-      // Rollback on error
       setActiveRoutine(activeRoutine);
+      setSyncStatus("No se pudo guardar el cambio. Intenta de nuevo.");
     }
   };
 
@@ -119,6 +121,10 @@ export default function Training() {
             <MetaPill icon="speedometer-outline" label="Intermedio" colors={colors} />
             <MetaPill icon="list-outline" label={`${totalExercises} ejercicios`} colors={colors} />
           </View>
+
+          {syncStatus ? (
+            <Text style={[styles.syncStatus, { color: colors.mutedForeground }]}>{syncStatus}</Text>
+          ) : null}
         </LinearGradient>
 
         <View style={styles.dayPicker}>
@@ -204,6 +210,11 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
+  },
+  syncStatus: {
+    marginTop: 12,
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
   },
   heroHeader: {
     flexDirection: "row",

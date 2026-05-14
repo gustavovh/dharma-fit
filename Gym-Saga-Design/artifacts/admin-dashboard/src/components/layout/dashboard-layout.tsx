@@ -33,11 +33,13 @@ export function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   const { token, hydrateFromStorage } = useAuthStore();
 
   useEffect(() => {
+    setMounted(true);
     hydrateFromStorage();
     
     // Auth guard
@@ -46,6 +48,10 @@ export function DashboardLayout({
       window.location.href = "/auth/login";
     }
   }, [hydrateFromStorage]);
+
+  if (!mounted) {
+    return null; // O un loader elegante
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");

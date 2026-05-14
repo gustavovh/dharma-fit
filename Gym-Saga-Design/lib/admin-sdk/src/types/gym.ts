@@ -77,3 +77,108 @@ export const CreateMeasurementSchema = z.object({
 });
 
 export type CreateMeasurement = z.infer<typeof CreateMeasurementSchema>;
+
+export const CreateRoutineExerciseSchema = z.object({
+  exercise_id: z.string().uuid(),
+  sets: z.number().min(1),
+  reps: z.string().min(1),
+  weight_kg: z.string().optional(),
+  rest_seconds: z.number().min(0).optional(),
+  order: z.number().min(0).optional(),
+  name_override: z.string().optional(),
+});
+
+export type CreateRoutineExercise = z.infer<typeof CreateRoutineExerciseSchema>;
+
+export const CreateRoutineSchema = z.object({
+  name: z.string().min(2),
+  day_of_week: z.number().min(1).max(7),
+  exercises: z.array(CreateRoutineExerciseSchema).min(1),
+});
+
+export type CreateRoutine = z.infer<typeof CreateRoutineSchema>;
+
+export const ObservationTypeEnum = z.enum(["Nota", "Alerta", "Progreso"]);
+
+export const AthleteObservationSchema = z.object({
+  id: z.string().uuid(),
+  athlete_id: z.string().uuid(),
+  trainer_id: z.string().uuid(),
+  type: ObservationTypeEnum,
+  content: z.string(),
+  date: z.date(),
+});
+
+export type AthleteObservation = z.infer<typeof AthleteObservationSchema>;
+
+export const CreateAthleteObservationSchema = z.object({
+  type: ObservationTypeEnum.default("Nota"),
+  content: z.string().min(1),
+});
+
+export type CreateAthleteObservation = z.infer<typeof CreateAthleteObservationSchema>;
+
+export const CoachDashboardSchema = z.object({
+  totals: z.object({
+    roster: z.number(),
+    active_today: z.number(),
+    inactive_3d: z.number(),
+    adherence_drop: z.number(),
+    attention_required: z.number(),
+  }),
+  active_today: z.array(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      email: z.string().email(),
+      plan_status: AthleteStatusEnum,
+      updated_at: z.date(),
+    })
+  ),
+  inactive_3d: z.array(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      email: z.string().email(),
+      plan_status: AthleteStatusEnum,
+      updated_at: z.date(),
+    })
+  ),
+  adherence_drop: z.array(
+    z.object({
+      athlete_id: z.string().uuid(),
+      athlete_name: z.string(),
+      current_week_sessions: z.number(),
+      previous_week_sessions: z.number(),
+      has_drop: z.boolean(),
+    })
+  ),
+  attention_required: z.array(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      reason: z.string(),
+    })
+  ),
+  recent_sessions: z.array(
+    z.object({
+      id: z.string().uuid(),
+      athlete_id: z.string().uuid(),
+      athlete_name: z.string(),
+      date: z.date(),
+      time: z.string().nullable().optional(),
+    })
+  ),
+  recent_feedbacks: z.array(
+    z.object({
+      id: z.string().uuid(),
+      athlete_id: z.string().uuid(),
+      athlete_name: z.string(),
+      type: ObservationTypeEnum,
+      content: z.string(),
+      date: z.date(),
+    })
+  ),
+});
+
+export type CoachDashboard = z.infer<typeof CoachDashboardSchema>;

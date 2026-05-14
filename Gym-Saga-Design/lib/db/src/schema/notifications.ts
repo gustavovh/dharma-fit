@@ -9,6 +9,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { adminUsers } from "./auth";
+import { athletes, trainers } from "./gym";
 
 // ============================================================================
 // ENUMS
@@ -45,6 +46,9 @@ export const notifications = pgTable(
     created_by: uuid("created_by")
       .notNull()
       .references(() => adminUsers.id, { onDelete: "restrict" }),
+    trainer_id: uuid("trainer_id").references(() => trainers.id, { onDelete: "set null" }),
+    athlete_id: uuid("athlete_id").references(() => athletes.id, { onDelete: "set null" }),
+    gym_id: uuid("gym_id"),
     created_at: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -59,6 +63,13 @@ export const notifications = pgTable(
       table.scheduled_at
     ),
     createdByIdx: index("notifications_created_by_idx").on(table.created_by),
+    trainerIdx: index("notifications_trainer_id_idx").on(table.trainer_id),
+    athleteIdx: index("notifications_athlete_id_idx").on(table.athlete_id),
+    trainerAthleteStatusIdx: index("notifications_trainer_athlete_status_idx").on(
+      table.trainer_id,
+      table.athlete_id,
+      table.status
+    ),
   })
 );
 

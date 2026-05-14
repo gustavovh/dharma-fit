@@ -15,7 +15,6 @@ import { AppIcon, AppIconName } from "@/components/AppIcon";
 import {
   gymApi
 } from "@/lib/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Routine, Measurement, User } from "@/types";
 import { ActivityIndicator } from "react-native";
 
@@ -31,16 +30,14 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const id = await AsyncStorage.getItem("atleta_id");
-        if (id) {
-          const profileRes = await gymApi.getProfile(id);
-          const routinesRes = await gymApi.getRoutines(id);
-          
-          if (profileRes.success) setUser(profileRes.data);
-          if (routinesRes.success) setRoutines(routinesRes.data);
-          
-          // Measurements would come from a separate endpoint or profile
-          // For now, if profile has measurements we use them, otherwise mocks for UI
+        const profileRes = await gymApi.getMe();
+        const routinesRes = await gymApi.getRoutines();
+        const measurementsRes = await gymApi.getMeasurements();
+
+        if (profileRes.success) setUser(profileRes.data);
+        if (routinesRes.success) setRoutines(routinesRes.data);
+        if (measurementsRes.success) {
+          setMeasurements(measurementsRes.data.slice().reverse());
         }
       } catch (err) {
         console.error("Failed to fetch home data:", err);
@@ -50,13 +47,12 @@ export default function Home() {
     })();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
-        <ActivityIndicator size="large" color="#ff4444" />
-      </View>
-    );
-  }
+  const chartWidth = Math.max(220, width - 96);
+  const quickActions = [
+    { label: "Entrenamientos", icon: "barbell-outline", onPress: () => router.push("/(tabs)/training") as void },
+    { label: "Calorías", icon: "flame-outline", onPress: () => router.push("/(tabs)/progress") as void },
+    { label: "Mindfulness", icon: "moon-outline", onPress: () => router.push("/(tabs)/profile") as void },
+  ] as const;
 
   const today = new Date();
   const dayOfWeek = ((today.getDay() + 6) % 7) + 1;
@@ -65,6 +61,7 @@ export default function Home() {
   const weeklyTarget = 4;
   const completedSessions = routines.filter((routine) => routine.exercises.every((exercise) => exercise.completed)).length;
   const weeklyProgress = Math.min(completedSessions / weeklyTarget, 1);
+
   const measurementsDelta = useMemo(() => {
     if (measurements.length < 2) return null;
     const latest = measurements[measurements.length - 1];
@@ -77,12 +74,13 @@ export default function Home() {
     []
   );
 
-  const chartWidth = Math.max(220, width - 96);
-  const quickActions = [
-    { label: "Entrenamientos", icon: "barbell-outline", onPress: () => router.push("/(tabs)/training") as void },
-    { label: "Calorías", icon: "flame-outline", onPress: () => router.push("/(tabs)/progress") as void },
-    { label: "Mindfulness", icon: "moon-outline", onPress: () => router.push("/(tabs)/profile") as void },
-  ] as const;
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
+        <ActivityIndicator size="large" color="#ff4444" />
+      </View>
+    );
+  }
 
   return (
     <LinearGradient colors={colors.gradientBackground} style={styles.screen}>

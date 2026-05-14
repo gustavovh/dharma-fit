@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Copy monorepo files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY tsconfig.base.json tsconfig.json ./
 
 # Copy workspaces
 COPY lib ./lib
@@ -13,13 +14,10 @@ COPY artifacts/api-server ./artifacts/api-server
 RUN npm install -g pnpm@9
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Build the project
-RUN pnpm run build
+RUN pnpm install --no-frozen-lockfile
 
 # Expose port
 EXPOSE 3001
 
 # Start the API server
-CMD ["pnpm", "-F", "@workspace/api-server", "start"]
+CMD ["pnpm", "-F", "@workspace/api-server", "dev:local"]

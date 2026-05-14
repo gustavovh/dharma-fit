@@ -101,11 +101,19 @@ export async function createUserRoutes(router: Router) {
     async (req: Request, res: Response) => {
       try {
         const { email, name, role, password } = req.body;
+        const allowedRoles = ["super_admin", "admin", "support", "editor", "viewer"];
 
         if (!email || !name || !role || !password) {
           return res.status(400).json({
             success: false,
             error: "Missing required fields",
+          });
+        }
+
+        if (!allowedRoles.includes(role)) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid role",
           });
         }
 
@@ -117,7 +125,7 @@ export async function createUserRoutes(router: Router) {
           });
         }
 
-        const newUser = await createAdminUser(email, password, name);
+        const newUser = await createAdminUser(email, password, name, role);
 
         const { password_hash, ...safeUser } = newUser;
 
@@ -128,15 +136,24 @@ export async function createUserRoutes(router: Router) {
         });
       } catch (error) {
         console.error("Create user error:", error);
-        if (
-          error instanceof Error &&
-          error.message.includes("unique constraint")
-        ) {
-          return res.status(400).json({
-            success: false,
-            error: "Email already exists",
-          });
+        if (typeof error === "object" && error !== null && "cause" in error) {
+          const cause = (error as { cause?: { code?: string } }).cause;
+
+          if (cause?.code === "23505") {
+            return res.status(409).json({
+              success: false,
+              error: "Email already exists",
+            });
+          }
+
+          if (cause?.code === "22P02") {
+            return res.status(400).json({
+              success: false,
+              error: "Invalid role",
+            });
+          }
         }
+
         res.status(500).json({
           success: false,
           error: "Failed to create user",
