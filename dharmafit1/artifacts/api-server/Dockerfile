@@ -16,8 +16,14 @@ RUN npm install -g pnpm@9
 # Install dependencies
 RUN pnpm install --no-frozen-lockfile
 
+# Build the API server so production runtime has compiled output
+RUN pnpm --filter @workspace/api-server build
+
+# Validate compiled entrypoint exists in the final image
+RUN test -f /app/artifacts/api-server/dist/index.mjs
+
 # Expose port
 EXPOSE 3001
 
 # Start the API server
-CMD ["pnpm", "-F", "@workspace/api-server", "start"]
+CMD ["pnpm", "--filter", "@workspace/api-server", "start"]
