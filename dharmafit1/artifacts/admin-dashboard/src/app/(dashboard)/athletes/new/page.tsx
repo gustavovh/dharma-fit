@@ -23,10 +23,8 @@ export default function NewAthletePage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.createAthlete(formData);
-      if (response.success) {
-        router.push("/athletes");
-      }
+      await api.createAthlete(formData);
+      router.push("/athletes");
     } catch (err: any) {
       console.error("Failed to create athlete:", err);
       setError(err.message || "Failed to create athlete. Check your connection.");

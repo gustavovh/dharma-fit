@@ -18,9 +18,7 @@ export default function AthletesPage() {
       try {
         setLoading(true);
         const response = await api.getAthletes();
-        if (response.success) {
-          setAthletes(response.data || []);
-        }
+        setAthletes(response.data || []);
       } catch (err: any) {
         console.error("Failed to fetch athletes:", err);
         setError(err.message || "Failed to load athletes");

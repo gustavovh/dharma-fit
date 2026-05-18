@@ -20,13 +20,13 @@ export default function MonitoringPage() {
       try {
         if (activeTab === "audit") {
           const res = await api.getAuditLogs();
-          if (res.success) setLogs(res.data || []);
+          setLogs(res.data || []);
         } else if (activeTab === "errors") {
           const res = await api.getErrorLogs();
-          if (res.success) setLogs(res.data || []);
+          setLogs(res.data || []);
         } else {
-          const res = await api.getHealth();
-          if (res.success) setHealth(res.data);
+          const res = await api.getDashboardStats();
+          setHealth(res);
         }
       } catch (error) {
         console.error(`Failed to fetch ${activeTab}:`, error);

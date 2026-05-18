@@ -19,11 +19,10 @@ export default function ConfigsPage() {
         let response;
         if (activeTab === "settings") response = await api.getSettings();
         else if (activeTab === "feature-flags") response = await api.getFeatureFlags();
-        else response = await api.getRemoteConfig();
+        else response = await api.getRemoteConfigs();
 
-        if (response.success) {
-          setData(response.data || []);
-        }
+        const payload = response && typeof response === "object" && "data" in response ? response.data : response;
+        setData(Array.isArray(payload) ? payload : payload ? [payload] : []);
       } catch (error) {
         console.error(`Failed to fetch ${activeTab}:`, error);
       } finally {

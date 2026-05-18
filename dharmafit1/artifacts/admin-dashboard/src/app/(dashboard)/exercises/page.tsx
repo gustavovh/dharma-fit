@@ -17,9 +17,7 @@ export default function ExercisesPage() {
       try {
         setLoading(true);
         const response = await api.getExercises();
-        if (response.success) {
-          setExercises(response.data || []);
-        }
+        setExercises(response.data || []);
       } catch (err: any) {
         console.error("Failed to fetch exercises:", err);
         setError(err.message || "Failed to load exercise library");

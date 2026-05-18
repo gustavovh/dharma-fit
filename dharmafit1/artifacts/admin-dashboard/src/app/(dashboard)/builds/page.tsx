@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { Plus, Search, ChevronRight, Package, Cpu, Box, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAdminApi } from "@/hooks/useApi";
-import type { AdminBuild } from "@workspace/admin-sdk";
+import type { Build } from "@workspace/admin-sdk";
 
 export default function BuildsPage() {
-  const [builds, setBuilds] = useState<AdminBuild[]>([]);
+  const [builds, setBuilds] = useState<Build[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const api = useAdminApi();
@@ -16,9 +16,7 @@ export default function BuildsPage() {
     const fetchBuilds = async () => {
       try {
         const response = await api.getBuilds();
-        if (response.success) {
-          setBuilds(response.data || []);
-        }
+        setBuilds(response.data || []);
       } catch (error) {
         console.error("Failed to fetch builds:", error);
       } finally {
