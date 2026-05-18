@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dharmafit-api-server
+    name: dharma-fit
     env: docker
     dockerfilePath: artifacts/api-server/Dockerfile
     autoDeploy: true
