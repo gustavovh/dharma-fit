@@ -58,7 +58,7 @@ export const featureFlags = pgTable(
     key: varchar("key", { length: 255 }).notNull().unique(),
     enabled: boolean("enabled").notNull().default(false),
     percentage: integer("percentage").notNull().default(100), // 0-100
-    platforms: json("platforms").$type<string[]>().notNull().default('[]'),
+    platforms: json("platforms").$type<string[]>().notNull().default([]),
     version_min: varchar("version_min", { length: 20 }),
     version_max: varchar("version_max", { length: 20 }),
     updated_by: uuid("updated_by").references(() => adminUsers.id, {

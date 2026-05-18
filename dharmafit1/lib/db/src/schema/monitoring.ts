@@ -72,7 +72,7 @@ export const errorLogs = pgTable(
     user_id: uuid("user_id").references(() => adminUsers.id, {
       onDelete: "set null",
     }),
-    metadata: json("metadata").$type<Record<string, any>>().notNull().default('{}'),
+    metadata: json("metadata").$type<Record<string, any>>().notNull().default({}),
     created_at: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
