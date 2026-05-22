@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "profeandres",
+    "name": "Saga Gym",
     "slug": "profeandres",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/profeandres-logo.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "profeandres",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/profeandres-logo.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0A"
     },
@@ -21,7 +21,7 @@
       "versionCode": 1
     },
     "web": {
-      "favicon": "./assets/images/profeandres-logo.png",
+      "favicon": "./assets/images/logo.png",
       "bundler": "metro"
     },
     "plugins": [

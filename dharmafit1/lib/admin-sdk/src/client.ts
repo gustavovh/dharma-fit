@@ -19,6 +19,7 @@ import type {
   Athlete,
   Measurement,
   Exercise,
+  CreateExercise,
   Routine,
   CreateAthlete,
   CreateMeasurement,
@@ -415,6 +416,26 @@ export class AdminApiClient {
 
   async getExercises() {
     return this.request<{ success: boolean; data: Exercise[] }>("/api/admin/gym/exercises");
+  }
+
+  async createExercise(data: CreateExercise) {
+    return this.request<{ success: boolean; data: Exercise }>("/api/admin/gym/exercises", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateExercise(id: string, data: Partial<CreateExercise>) {
+    return this.request<{ success: boolean; data: Exercise }>(`/api/admin/gym/exercises/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  async deleteExercise(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/api/admin/gym/exercises/${id}`, {
+      method: "DELETE",
+    });
   }
 
   async getCoachDashboard() {

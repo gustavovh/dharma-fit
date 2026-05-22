@@ -40,7 +40,7 @@ export default function UsersPage() {
       case "superadmin":
         return "bg-purple-600/20 text-purple-400 border-purple-500/50";
       case "admin":
-        return "bg-blue-600/20 text-blue-400 border-blue-500/50";
+        return "bg-primary/20 text-primary border-primary/50";
       case "manager":
         return "bg-green-600/20 text-green-400 border-green-500/50";
       case "viewer":
@@ -71,7 +71,7 @@ export default function UsersPage() {
         </div>
         <Link
           href="/users/new"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-lg shadow-blue-900/20"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors font-medium shadow-lg shadow-primary/20"
         >
           <Plus className="w-5 h-5" />
           Add User
@@ -80,13 +80,13 @@ export default function UsersPage() {
 
       {/* Search & Filters */}
       <div className="relative group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
         <input
           type="text"
           placeholder="Search by name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
         />
       </div>
 
@@ -94,7 +94,7 @@ export default function UsersPage() {
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-slate-400">Loading users...</p>
           </div>
         ) : error ? (
@@ -105,7 +105,7 @@ export default function UsersPage() {
             <p className="text-red-400 font-medium">{error}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="mt-4 text-sm text-blue-400 hover:text-blue-300 underline underline-offset-4"
+              className="mt-4 text-sm text-primary hover:text-blue-300 underline underline-offset-4"
             >
               Try again
             </button>
@@ -144,11 +144,11 @@ export default function UsersPage() {
                   <tr key={user.id} className="hover:bg-slate-800/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-blue-400 font-bold border border-slate-700">
+                        <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-primary font-bold border border-slate-700">
                           {user.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">{user.name}</p>
+                          <p className="font-semibold text-white group-hover:text-primary transition-colors">{user.name}</p>
                           <p className="text-sm text-slate-400">{user.email}</p>
                         </div>
                       </div>

@@ -75,7 +75,7 @@ export function DialogTrigger({
   }
 
   return (
-    <button onClick={onClick} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+    <button onClick={onClick} className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors">
       {children}
     </button>
   );

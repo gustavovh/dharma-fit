@@ -62,7 +62,7 @@ export default function NewAthletePage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
                 placeholder="Juan Pérez"
               />
             </div>
@@ -77,7 +77,7 @@ export default function NewAthletePage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
                 placeholder="juan@ejemplo.com"
               />
             </div>
@@ -92,7 +92,7 @@ export default function NewAthletePage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -106,7 +106,7 @@ export default function NewAthletePage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/50 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20"
+            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 disabled:bg-blue-900/50 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary/20"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -17,7 +17,7 @@ import { ActivityIndicator } from "react-native";
 export default function Training() {
   const colors = useColors();
   const [routines, setRoutines] = useState<Routine[]>([]);
-  const [activeRoutine, setActiveRoutine] = useState<Routine | undefined>();
+  const [selectedDay, setSelectedDay] = useState<number>(((new Date().getDay() + 6) % 7) + 1);
   const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,8 +29,8 @@ export default function Training() {
         const res = await gymApi.getRoutines();
         if (res.success) {
           setRoutines(res.data);
-          const today = ((new Date().getDay() + 6) % 7) + 1;
-          setActiveRoutine(res.data.find((r: any) => r.dayOfWeek === today) || res.data[0]);
+          // If the current day has no routine but they have other routines, maybe default to the first one?
+          // No, default to today. If there's no routine, it shows rest day.
         }
       } catch (err) {
         console.error("Failed to fetch routines:", err);
@@ -39,6 +39,8 @@ export default function Training() {
       }
     })();
   }, []);
+
+  const activeRoutine = routines.find(r => r.dayOfWeek === selectedDay);
 
   const toggleExercise = async (exerciseId: string) => {
     if (!activeRoutine) return;
@@ -49,16 +51,15 @@ export default function Training() {
     const newStatus = !exercise.completed;
 
     // Optimistic update
-    const updated = {
-      ...activeRoutine,
-      exercises: activeRoutine.exercises.map((ex) =>
-        ex.id === exerciseId ? { ...ex, completed: newStatus } : ex
-      ),
-    };
-    setActiveRoutine(updated);
+    setRoutines(prev => prev.map(r => 
+      r.id === activeRoutine.id ? {
+        ...r,
+        exercises: r.exercises.map(ex => ex.id === exerciseId ? { ...ex, completed: newStatus } : ex)
+      } : r
+    ));
     
     if (selectedExercise?.id === exerciseId) {
-      setSelectedExercise(updated.exercises.find(ex => ex.id === exerciseId) || null);
+      setSelectedExercise(activeRoutine.exercises.find(ex => ex.id === exerciseId) ? { ...selectedExercise, completed: newStatus } : null);
     }
 
     // API Call
@@ -71,7 +72,13 @@ export default function Training() {
       }
     } catch (err) {
       console.error("Failed to sync exercise status:", err);
-      setActiveRoutine(activeRoutine);
+      // Revert in case of error
+      setRoutines(prev => prev.map(r => 
+        r.id === activeRoutine.id ? {
+          ...r,
+          exercises: r.exercises.map(ex => ex.id === exerciseId ? { ...ex, completed: !newStatus } : ex)
+        } : r
+      ));
       setSyncStatus("No se pudo guardar el cambio. Intenta de nuevo.");
     }
   };
@@ -107,8 +114,10 @@ export default function Training() {
           <View style={styles.heroHeader}>
             <View>
               <Text style={[styles.heroKicker, { color: colors.primary }]}>RUTINA DEL DIA</Text>
-              <Text style={[styles.heroTitle, { color: colors.foreground }]}>{activeRoutine?.name || "Tu próxima sesión"}</Text>
-              <Text style={[styles.heroSubtitle, { color: colors.mutedForeground }]}>Progresión inteligente con foco en ejecución y recuperación.</Text>
+              <Text style={[styles.heroTitle, { color: colors.foreground }]}>{activeRoutine?.name || "Día de descanso"}</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.mutedForeground }]}>
+                {activeRoutine ? "Progresión inteligente con foco en ejecución y recuperación." : "Aprovecha para recuperar energía."}
+              </Text>
             </View>
             <View style={[styles.heroBadge, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
               <Text style={[styles.heroBadgeValue, { color: colors.foreground }]}>{completedExercises}/{totalExercises}</Text>
@@ -130,14 +139,11 @@ export default function Training() {
         <View style={styles.dayPicker}>
           {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, index) => {
             const dayNum = index + 1;
-            const isActive = activeRoutine?.dayOfWeek === dayNum;
+            const isActive = selectedDay === dayNum;
             return (
               <Pressable
                 key={day}
-                onPress={() => {
-                  const found = routines.find(r => r.dayOfWeek === dayNum);
-                  if (found) setActiveRoutine(found);
-                }}
+                onPress={() => setSelectedDay(dayNum)}
                 style={[
                   styles.dayButton,
                   { backgroundColor: isActive ? colors.secondary : colors.card, borderColor: isActive ? colors.primary : colors.border, shadowColor: isActive ? colors.primary : colors.shadow }
@@ -151,7 +157,7 @@ export default function Training() {
           })}
         </View>
 
-        <SectionHeader title="Ejercicios" actionLabel="Rutinas" onAction={() => setActiveRoutine(routines[0])} />
+        <SectionHeader title="Ejercicios" actionLabel="Hoy" onAction={() => setSelectedDay(((new Date().getDay() + 6) % 7) + 1)} />
         
         {activeRoutine?.exercises.map((exercise, index) => (
           <Animated.View
@@ -168,8 +174,8 @@ export default function Training() {
 
         <SectionHeader title="Otras rutinas" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
-          {routines.filter(r => r.id !== activeRoutine?.id).map((r) => (
-            <Pressable key={r.id} onPress={() => setActiveRoutine(r)}>
+          {routines.filter(r => r.dayOfWeek !== selectedDay).map((r) => (
+            <Pressable key={r.id} onPress={() => setSelectedDay(r.dayOfWeek)}>
               <Card style={styles.miniCard} variant="gold">
                 <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold", fontSize: 16 }}>{r.name}</Text>
                 <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 6 }}>

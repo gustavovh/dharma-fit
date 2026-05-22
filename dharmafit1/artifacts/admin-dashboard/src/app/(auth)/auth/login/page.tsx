@@ -56,9 +56,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Gym Saga</h1>
-            <p className="text-slate-400">Admin Dashboard</p>
+          <div className="mb-8 flex flex-col items-center">
+            <img src="/logo.png" alt="SAGA GYM" className="h-24 object-contain mb-4" />
+            <p className="text-slate-400 font-medium tracking-wide uppercase text-sm">Panel de Administración</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -71,7 +71,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@gym-saga.local"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minimum 10 characters"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold py-2 rounded-lg transition-colors"
+              className="w-full bg-primary hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold py-2 rounded-lg transition-colors"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>

@@ -36,7 +36,7 @@ export function AppHeader({
         <View style={styles.logoRow}>
           <LinearGradient colors={colors.gradientHero} style={[styles.brandPill, { borderColor: colors.border }]}> 
             <Image
-              source={require("../assets/images/dharmafit.png")}
+              source={require("../assets/images/logo.png")}
               style={styles.logo}
               contentFit="contain"
             />

@@ -17,6 +17,7 @@ export async function createRoutineRoutes(router: Router) {
           .select({
             id: routineExercises.id,
             name: routineExercises.name_override,
+            exerciseName: exercises.name,
             sets: routineExercises.sets,
             reps: routineExercises.reps,
             weightKg: routineExercises.weight_kg,
@@ -28,13 +29,23 @@ export async function createRoutineRoutes(router: Router) {
               type: routineExercises.media_type,
             },
             exerciseId: routineExercises.exercise_id,
+            video_url: exercises.video_url,
           })
           .from(routineExercises)
-          .where(eq(routineExercises.routine_id, r.id));
+          .leftJoin(exercises, eq(routineExercises.exercise_id, exercises.id))
+          .where(eq(routineExercises.routine_id, r.id))
+          .orderBy(routineExercises.order);
 
         return {
           ...r,
-          exercises: items,
+          exercises: items.map(item => ({
+            ...item,
+            name: item.name || item.exerciseName,
+            media: {
+              url: item.media.url || item.video_url || "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80",
+              type: item.media.type || (item.video_url ? "video" : "image")
+            }
+          })),
         };
       })
     );

@@ -70,7 +70,7 @@ export default function NewAdminUserPage() {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
               placeholder="Administrator Name"
             />
           </div>
@@ -85,7 +85,7 @@ export default function NewAdminUserPage() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
               placeholder="admin@example.com"
             />
           </div>
@@ -101,7 +101,7 @@ export default function NewAdminUserPage() {
               minLength={10}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
               placeholder="At least 10 characters"
             />
           </div>
@@ -114,7 +114,7 @@ export default function NewAdminUserPage() {
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition-all"
             >
               {roleOptions.map((role) => (
                 <option key={role.value} value={role.value}>
@@ -132,7 +132,7 @@ export default function NewAdminUserPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/50 text-white py-4 rounded-2xl font-bold transition-all"
+            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 disabled:bg-blue-900/50 text-white py-4 rounded-2xl font-bold transition-all"
           >
             {loading ? "Creating..." : <><Save className="w-5 h-5" />Create User</>}
           </button>

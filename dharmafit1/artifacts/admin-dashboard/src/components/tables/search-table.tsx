@@ -42,7 +42,7 @@ export function SearchTable<T extends { id: string | number }>({
         {onAdd && (
           <button
             onClick={onAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors"
           >
             + Add New
           </button>
@@ -57,7 +57,7 @@ export function SearchTable<T extends { id: string | number }>({
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
@@ -114,7 +114,7 @@ export function SearchTable<T extends { id: string | number }>({
                           {onEdit && (
                             <button
                               onClick={() => onEdit(row)}
-                              className="text-blue-400 hover:text-blue-300 transition-colors"
+                              className="text-primary hover:text-blue-300 transition-colors"
                             >
                               <Edit className="w-4 h-4" />
                             </button>

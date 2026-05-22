@@ -327,14 +327,32 @@ export async function createAdminGymRoutes(router: Router) {
         const { id } = req.params;
         const { weight_kg, body_fat_pct, notes } = req.body;
 
+        if (!weight_kg) {
+          return res.status(400).json({ success: false, error: "El peso es obligatorio" });
+        }
+
+        const weight = parseFloat(weight_kg);
+        if (isNaN(weight) || weight <= 0 || weight > 500) {
+          return res.status(400).json({ success: false, error: "El peso no es válido" });
+        }
+
+        let bf: string | null = null;
+        if (body_fat_pct !== undefined && body_fat_pct !== null && body_fat_pct !== "") {
+          const bfFloat = parseFloat(body_fat_pct);
+          if (isNaN(bfFloat) || bfFloat < 0 || bfFloat > 99.99) {
+            return res.status(400).json({ success: false, error: "El porcentaje de grasa debe estar entre 0 y 99.99" });
+          }
+          bf = bfFloat.toString();
+        }
+
         if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
 
         const [newMeasurement] = await db
           .insert(measurements)
           .values({
             athlete_id: id,
-            weight_kg: weight_kg.toString(),
-            body_fat_pct: body_fat_pct?.toString(),
+            weight_kg: weight.toString(),
+            body_fat_pct: bf,
             notes,
           })
           .returning();
@@ -343,8 +361,8 @@ export async function createAdminGymRoutes(router: Router) {
         await db
           .update(athletes)
           .set({
-            weight_kg: weight_kg.toString(),
-            body_fat_pct: body_fat_pct?.toString(),
+            weight_kg: weight.toString(),
+            body_fat_pct: bf,
             updated_at: new Date(),
           })
           .where(eq(athletes.id, id));
@@ -591,6 +609,88 @@ export async function createAdminGymRoutes(router: Router) {
       } catch (error) {
         console.error("Failed to fetch exercises:", error);
         res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // Create a new exercise
+  router.post(
+    "/admin/gym/exercises",
+    authenticateAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { name, muscle_group, description, video_url } = req.body;
+        if (!name) {
+          return res.status(400).json({ success: false, error: "El nombre es requerido" });
+        }
+
+        const [newExercise] = await db
+          .insert(exercises)
+          .values({
+            name,
+            muscle_group,
+            description,
+            video_url,
+          })
+          .returning();
+
+        return res.status(201).json({ success: true, data: newExercise, timestamp: new Date() });
+      } catch (error) {
+        console.error("Failed to create exercise:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // Update an existing exercise
+  router.put(
+    "/admin/gym/exercises/:id",
+    authenticateAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const { name, muscle_group, description, video_url } = req.body;
+        
+        if (!name) {
+          return res.status(400).json({ success: false, error: "El nombre es requerido" });
+        }
+
+        const [updatedExercise] = await db
+          .update(exercises)
+          .set({
+            name,
+            muscle_group,
+            description,
+            video_url,
+          })
+          .where(eq(exercises.id, id))
+          .returning();
+
+        if (!updatedExercise) {
+          return res.status(404).json({ success: false, error: "Ejercicio no encontrado" });
+        }
+
+        return res.json({ success: true, data: updatedExercise, timestamp: new Date() });
+      } catch (error) {
+        console.error("Failed to update exercise:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // Delete an exercise
+  router.delete(
+    "/admin/gym/exercises/:id",
+    authenticateAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        
+        await db.delete(exercises).where(eq(exercises.id, id));
+        return res.json({ success: true, message: "Exercise deleted successfully", timestamp: new Date() });
+      } catch (error) {
+        console.error("Failed to delete exercise:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
       }
     }
   );

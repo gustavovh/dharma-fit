@@ -76,13 +76,13 @@ export default function MonitoringPage() {
 
       {activeTab !== "health" && (
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
           <input
             type="text"
             placeholder={`Search ${activeTab} logs...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
           />
         </div>
       )}
@@ -90,7 +90,7 @@ export default function MonitoringPage() {
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm min-h-[400px]">
         {loading ? (
           <div className="p-20 text-center">
-            <div className="inline-block w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-slate-400">Loading {activeTab} data...</p>
           </div>
         ) : activeTab === "health" ? (
@@ -125,7 +125,7 @@ export default function MonitoringPage() {
                     <div className="flex items-center gap-3">
                       {activeTab === "audit" ? (
                         <>
-                          <span className="px-2 py-0.5 bg-blue-600/20 text-blue-400 text-[10px] font-bold rounded uppercase tracking-wider border border-blue-500/30">
+                          <span className="px-2 py-0.5 bg-primary/20 text-primary text-[10px] font-bold rounded uppercase tracking-wider border border-primary/30">
                             {log.action}
                           </span>
                           <span className="text-sm font-semibold text-white">{log.resource_type}</span>

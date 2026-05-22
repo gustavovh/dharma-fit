@@ -68,14 +68,14 @@ export default function ConfigsPage() {
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm min-h-[400px]">
         {loading ? (
           <div className="p-20 text-center">
-            <div className="inline-block w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-slate-400">Loading {activeTab.replace("-", " ")}...</p>
           </div>
         ) : data.length === 0 ? (
           <div className="p-20 text-center">
             <AlertCircle className="w-12 h-12 text-slate-700 mx-auto mb-4" />
             <p className="text-slate-400">No configuration found for {activeTab.replace("-", " ")}</p>
-            <button className="mt-4 text-blue-400 hover:text-blue-300 font-medium flex items-center gap-2 mx-auto">
+            <button className="mt-4 text-primary hover:text-blue-300 font-medium flex items-center gap-2 mx-auto">
               <Plus className="w-4 h-4" />
               Create your first entry
             </button>
@@ -84,7 +84,7 @@ export default function ConfigsPage() {
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-bold text-white capitalize">{activeTab.replace("-", " ")}</h2>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+              <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Add New
               </button>
@@ -96,7 +96,7 @@ export default function ConfigsPage() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-blue-400 font-bold">{item.key}</span>
+                        <span className="font-mono text-primary font-bold">{item.key}</span>
                         {item.enabled !== undefined && (
                           <span className={`w-2 h-2 rounded-full ${item.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
                         )}
@@ -107,7 +107,7 @@ export default function ConfigsPage() {
                       <button className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors">
                         <RotateCcw className="w-4 h-4" />
                       </button>
-                      <button className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-blue-400 transition-colors">
+                      <button className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-primary transition-colors">
                         <Save className="w-4 h-4" />
                       </button>
                     </div>
@@ -119,7 +119,7 @@ export default function ConfigsPage() {
                         <input 
                           type="text" 
                           defaultValue={JSON.stringify(item.value)} 
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 font-mono focus:outline-none focus:border-blue-500"
+                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 font-mono focus:outline-none focus:border-primary"
                         />
                       </div>
                     )}

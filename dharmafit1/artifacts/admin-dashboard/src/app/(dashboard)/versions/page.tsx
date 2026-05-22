@@ -70,7 +70,7 @@ export default function VersionsPage() {
         </div>
         <Link
           href="/versions/new"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           New Release
@@ -85,7 +85,7 @@ export default function VersionsPage() {
           placeholder="Search versions..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+          className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-primary"
         />
       </div>
 
@@ -143,7 +143,7 @@ export default function VersionsPage() {
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/versions/${release.id}`}
-                        className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                        className="inline-flex items-center gap-2 text-primary hover:text-blue-300 transition-colors"
                       >
                         View
                         <ChevronRight className="w-4 h-4" />

@@ -25,7 +25,10 @@ import {
   Tooltip, 
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  BarChart,
+  Bar,
+  Cell
 } from "recharts";
 
 export default function AthleteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -185,10 +188,9 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
       setMeasurementError(null);
 
       await api.addMeasurement(id, {
-        weight_kg: measurementForm.weight_kg,
-        body_fat_pct: measurementForm.body_fat_pct || undefined,
-        date: new Date().toISOString(),
-      });
+        weight_kg: parseFloat(measurementForm.weight_kg),
+        body_fat_pct: measurementForm.body_fat_pct ? parseFloat(measurementForm.body_fat_pct) : undefined,
+      } as any);
 
       const athleteRes = await api.getAthlete(id);
       setAthlete((athleteRes as any).data || null);
@@ -206,7 +208,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="h-full flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-400 animate-pulse">Cargando perfil del atleta...</p>
         </div>
       </div>
@@ -218,7 +220,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
       <div className="p-12 text-center">
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl inline-block">
           <p className="text-red-400 font-bold text-lg">Atleta no encontrado</p>
-          <Link href="/athletes" className="text-blue-400 hover:underline mt-4 inline-block">Volver a la lista</Link>
+          <Link href="/athletes" className="text-primary hover:underline mt-4 inline-block">Volver a la lista</Link>
         </div>
       </div>
     );
@@ -264,7 +266,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                  <TrendingUp className="w-5 h-5 text-primary" />
                   Progreso del Atleta
                 </h3>
                 <p className="text-sm text-slate-500">Historial de peso a lo largo del tiempo</p>
@@ -320,6 +322,131 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
+          {/* Avance de Rutinas Chart */}
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Dumbbell className="w-5 h-5 text-yellow-400" />
+                  Avance de Rutinas
+                </h3>
+                <p className="text-sm text-slate-500">Ejercicios completados por el alumno desde su app</p>
+              </div>
+            </div>
+
+            {routines.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-500 italic bg-slate-800/10 rounded-2xl border border-dashed border-slate-700/60">
+                <Dumbbell className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
+                <p className="text-sm">Asigna rutinas para ver el avance del atleta</p>
+              </div>
+            ) : (
+              <>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={routines.map((r) => {
+                        const total = r.exercises?.length || 0;
+                        const completed = r.exercises?.filter((ex) => ex.completed).length || 0;
+                        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+                        return {
+                          name: r.name,
+                          completed,
+                          total,
+                          percentage,
+                        };
+                      })}
+                      layout="vertical"
+                      margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                      <XAxis
+                        type="number"
+                        domain={[0, 100]}
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        width={90}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '12px',
+                          color: '#fff',
+                        }}
+                        formatter={(value: any, name: any, props: any) => {
+                          const { completed, total } = props.payload;
+                          return [`${value}% (${completed}/${total} ej)`, 'Progreso'];
+                        }}
+                      />
+                      <Bar dataKey="percentage" radius={[0, 8, 8, 0]} barSize={16}>
+                        {routines.map((r, index) => {
+                          const total = r.exercises?.length || 0;
+                          const completed = r.exercises?.filter((ex) => ex.completed).length || 0;
+                          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+                          return (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={percentage === 100 ? '#10b981' : '#facc15'}
+                            />
+                          );
+                        })}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Micro-metrics grid */}
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800/80">
+                  <div className="bg-slate-800/30 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Consistencia Promedio</p>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-xl font-black text-white">
+                        {Math.round(
+                          routines.reduce((acc, r) => {
+                            const total = r.exercises?.length || 0;
+                            const completed = r.exercises?.filter((ex) => ex.completed).length || 0;
+                            return acc + (total > 0 ? (completed / total) * 100 : 0);
+                          }, 0) / routines.length
+                        )}
+                      </span>
+                      <span className="text-xs text-slate-500 font-bold">%</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/30 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ejercicios Realizados</p>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-xl font-black text-white">
+                        {routines.reduce((acc, r) => acc + (r.exercises?.filter((ex) => ex.completed).length || 0), 0)}
+                      </span>
+                      <span className="text-xs text-slate-500 font-bold">ej</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/30 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rutinas Completas</p>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-xl font-black text-white">
+                        {routines.filter((r) => r.exercises?.length > 0 && r.exercises.every((ex) => ex.completed)).length}
+                      </span>
+                      <span className="text-xs text-slate-500 font-bold">/ {routines.length}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl backdrop-blur-sm">
@@ -355,22 +482,22 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 <Dumbbell className="w-5 h-5 text-purple-500" />
                 Rutinas
               </h3>
-              <button className="text-blue-400 hover:text-blue-300 text-sm font-bold">Administrar</button>
+              <button className="text-primary hover:text-blue-300 text-sm font-bold">Administrar</button>
             </div>
 
             <div className="space-y-4 flex-1 overflow-y-auto pr-2">
               {routines.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-slate-500 italic">No hay rutinas asignadas</p>
-                  <button className="mt-4 bg-blue-600/20 text-blue-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-500/30">
+                  <button className="mt-4 bg-primary/20 text-primary px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-primary/30">
                     Crear Rutina
                   </button>
                 </div>
               ) : (
                 routines.map((r) => (
-                  <div key={r.id} className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl hover:border-blue-500/50 transition-all group">
+                  <div key={r.id} className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl hover:border-primary/50 transition-all group">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="font-bold text-white group-hover:text-blue-400 transition-colors">{r.name}</p>
+                      <p className="font-bold text-white group-hover:text-primary transition-colors">{r.name}</p>
                       <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Día {r.day_of_week}</span>
                     </div>
                     <div className="space-y-2">
@@ -391,7 +518,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
             
-            <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20">
+            <button className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary/20">
               Actualizar Plan de Entrenamiento
             </button>
 
@@ -408,13 +535,13 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 value={routineForm.name}
                 onChange={(e) => setRoutineForm((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="Nombre de la rutina"
-                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-primary"
               />
 
               <select
                 value={routineForm.day_of_week}
                 onChange={(e) => setRoutineForm((prev) => ({ ...prev, day_of_week: Number(e.target.value) }))}
-                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-primary"
               >
                 <option value={1}>Lunes</option>
                 <option value={2}>Martes</option>
@@ -478,7 +605,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 type="button"
                 onClick={handleAssignRoutine}
                 disabled={savingRoutine}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40 text-white text-sm font-bold"
+                className="w-full py-3 rounded-xl bg-primary hover:bg-blue-700 disabled:bg-blue-900/40 text-white text-sm font-bold"
               >
                 {savingRoutine ? "Guardando..." : "Asignar Rutina"}
               </button>
@@ -561,7 +688,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                   value={measurementForm.weight_kg}
                   onChange={(e) => setMeasurementForm(prev => ({ ...prev, weight_kg: e.target.value }))}
                   placeholder="Ej: 75.5"
-                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -573,7 +700,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                   value={measurementForm.body_fat_pct}
                   onChange={(e) => setMeasurementForm(prev => ({ ...prev, body_fat_pct: e.target.value }))}
                   placeholder="Ej: 15.2"
-                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -588,7 +715,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={handleAddMeasurement}
                 disabled={savingMeasurement}
-                className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {savingMeasurement ? "Guardando..." : "Guardar"}
               </button>

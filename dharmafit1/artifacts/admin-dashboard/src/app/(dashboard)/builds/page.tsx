@@ -39,7 +39,7 @@ export default function BuildsPage() {
       case "failed":
         return <XCircle className="w-4 h-4 text-red-400" />;
       case "building":
-        return <Clock className="w-4 h-4 text-blue-400 animate-pulse" />;
+        return <Clock className="w-4 h-4 text-primary animate-pulse" />;
       case "cancelled":
         return <AlertCircle className="w-4 h-4 text-slate-400" />;
       default:
@@ -54,7 +54,7 @@ export default function BuildsPage() {
       case "failed":
         return "bg-red-600/20 text-red-400 border-red-500/30";
       case "building":
-        return "bg-blue-600/20 text-blue-400 border-blue-500/30";
+        return "bg-primary/20 text-primary border-primary/30";
       case "cancelled":
         return "bg-slate-600/20 text-slate-400 border-slate-500/30";
       default:
@@ -72,7 +72,7 @@ export default function BuildsPage() {
         </div>
         <Link
           href="/builds/new"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors font-medium"
         >
           <Plus className="w-5 h-5" />
           New Build
@@ -87,7 +87,7 @@ export default function BuildsPage() {
           placeholder="Search by version or platform..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+          className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-primary transition-all"
         />
       </div>
 
@@ -95,7 +95,7 @@ export default function BuildsPage() {
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-slate-400">Loading builds...</p>
           </div>
         ) : filteredBuilds.length === 0 ? (
@@ -136,7 +136,7 @@ export default function BuildsPage() {
                           <Box className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">v{build.version}</p>
+                          <p className="font-semibold text-white group-hover:text-primary transition-colors">v{build.version}</p>
                           <p className="text-xs text-slate-500 font-mono uppercase">{build.id.split("-")[0]}</p>
                         </div>
                       </div>

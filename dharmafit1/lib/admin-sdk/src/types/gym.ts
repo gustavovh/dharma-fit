@@ -33,10 +33,19 @@ export const ExerciseSchema = z.object({
   name: z.string(),
   muscle_group: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
-  video_url: z.string().url().nullable().optional(),
+  video_url: z.string().nullable().optional(),
 });
 
 export type Exercise = z.infer<typeof ExerciseSchema>;
+
+export const CreateExerciseSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido"),
+  muscle_group: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  video_url: z.string().nullable().optional(),
+});
+
+export type CreateExercise = z.infer<typeof CreateExerciseSchema>;
 
 export const RoutineExerciseSchema = z.object({
   id: z.string().uuid(),

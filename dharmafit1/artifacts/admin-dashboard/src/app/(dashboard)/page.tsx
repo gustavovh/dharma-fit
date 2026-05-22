@@ -34,8 +34,8 @@ function StatCard({
           <p className="text-slate-400 text-sm font-medium">{label}</p>
           <p className="text-white text-3xl font-bold mt-2">{value}</p>
         </div>
-        <div className="bg-blue-600/20 p-3 rounded-lg">
-          <Icon className="w-6 h-6 text-blue-400" />
+        <div className="bg-primary/20 p-3 rounded-lg">
+          <Icon className="w-6 h-6 text-primary" />
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-amber-300">{item.reason}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Link href={`/athletes/${item.id}`} className="text-xs px-3 py-1 rounded-lg bg-blue-600 text-white font-semibold">
+                  <Link href={`/athletes/${item.id}`} className="text-xs px-3 py-1 rounded-lg bg-primary text-primary-foreground font-semibold">
                     Abrir Perfil
                   </Link>
                 </div>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
             <button
               onClick={sendFeedback}
               disabled={sendingFeedback}
-              className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40 text-white py-2 text-sm font-semibold"
+              className="w-full rounded-xl bg-primary hover:bg-blue-700 disabled:bg-blue-900/40 text-white py-2 text-sm font-semibold"
             >
               {sendingFeedback ? "Enviando..." : "Enviar Observacion"}
             </button>

@@ -58,7 +58,7 @@ export default function AthletesPage() {
         </div>
         <Link
           href="/athletes/new"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all font-semibold shadow-lg shadow-blue-900/20 hover:scale-[1.02] active:scale-[0.98]"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl transition-all font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="w-5 h-5" />
           Añadir Atleta
@@ -67,13 +67,13 @@ export default function AthletesPage() {
 
       {/* Search */}
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
         <input
           type="text"
           placeholder="Buscar atletas por nombre, correo..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all backdrop-blur-sm"
+          className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all backdrop-blur-sm"
         />
       </div>
 
@@ -81,7 +81,7 @@ export default function AthletesPage() {
       <div className="bg-slate-900/50 border border-slate-800 rounded-3xl overflow-hidden backdrop-blur-md">
         {loading ? (
           <div className="p-20 text-center">
-            <div className="inline-block w-10 h-10 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-slate-400 font-medium">Obteniendo registros del gimnasio...</p>
           </div>
         ) : error ? (
@@ -120,14 +120,14 @@ export default function AthletesPage() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {filteredAthletes.map((athlete) => (
-                  <tr key={athlete.id} className="hover:bg-blue-600/5 transition-all group cursor-pointer">
+                  <tr key={athlete.id} className="hover:bg-primary/5 transition-all group cursor-pointer">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-900/20 border border-blue-500/30 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/20 border border-primary/30 group-hover:scale-110 transition-transform">
                           {athlete.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-bold text-white group-hover:text-blue-400 transition-colors">{athlete.name}</p>
+                          <p className="font-bold text-white group-hover:text-primary transition-colors">{athlete.name}</p>
                           <p className="text-sm text-slate-500">{athlete.email}</p>
                         </div>
                       </div>
@@ -140,7 +140,7 @@ export default function AthletesPage() {
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <Activity className="w-3.5 h-3.5 text-blue-500" />
+                          <Activity className="w-3.5 h-3.5 text-primary" />
                           <span className="text-sm text-slate-300 font-semibold">{athlete.weight_kg || "--"} kg</span>
                         </div>
                         <div className="text-xs text-slate-500 pl-5">
@@ -157,7 +157,7 @@ export default function AthletesPage() {
                     <td className="px-8 py-6 text-right">
                       <Link
                         href={`/athletes/${athlete.id}`}
-                        className="inline-flex items-center gap-2 bg-slate-800 group-hover:bg-blue-600 text-slate-300 group-hover:text-white px-4 py-2 rounded-xl transition-all text-sm font-bold border border-slate-700 group-hover:border-blue-500 shadow-sm"
+                        className="inline-flex items-center gap-2 bg-slate-800 group-hover:bg-primary text-slate-300 group-hover:text-primary-foreground px-4 py-2 rounded-xl transition-all text-sm font-bold border border-slate-700 group-hover:border-primary shadow-sm"
                       >
                         Administrar
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

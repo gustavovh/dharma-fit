@@ -82,8 +82,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   sheet: {
-    maxHeight: "80%",
-    minHeight: 200,
+    height: "90%",
     borderWidth: 1,
     shadowOpacity: 0.22,
     shadowRadius: 24,
@@ -91,6 +90,7 @@ const styles = StyleSheet.create({
   },
   sheetFill: {
     overflow: "hidden",
+    flex: 1,
   },
   handleContainer: {
     alignItems: "center",
@@ -122,5 +122,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+    flex: 1,
   }
 });

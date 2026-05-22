@@ -42,11 +42,12 @@ export default function LoginScreen() {
         style={styles.content}
       >
         <Animated.View entering={FadeIn.duration(800)} style={styles.logoContainer}>
-          <View style={[styles.logoCircle, { borderColor: colors.primary }]}>
-             <Text style={[styles.logoText, { color: colors.foreground }]}>PA</Text>
-          </View>
-          <Text style={[styles.title, { color: colors.foreground }]}>ProfeAndres</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>GYM SAGA • DESIGN</Text>
+          <Image 
+            source={require("../assets/images/logo.png")} 
+            style={styles.mainLogo} 
+            resizeMode="contain" 
+          />
+          <Text style={[styles.subtitle, { color: colors.mutedForeground, marginTop: 10 }]}>SAGA GYM</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.form}>
@@ -111,20 +112,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, padding: 30, justifyContent: "center" },
   logoContainer: { alignItems: "center", marginBottom: 50 },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-  },
-  logoText: { fontSize: 32, fontWeight: "900" },
+  mainLogo: { width: 220, height: 100 },
   title: { fontSize: 32, fontWeight: "800", letterSpacing: -1 },
   subtitle: { fontSize: 12, fontWeight: "600", letterSpacing: 2, marginTop: 5 },
   form: { width: "100%" },

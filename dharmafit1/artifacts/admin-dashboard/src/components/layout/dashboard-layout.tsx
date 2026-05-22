@@ -68,10 +68,9 @@ export function DashboardLayout({
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-          <div>
-            <h1 className="text-xl font-bold text-white">Gym Saga</h1>
-            <p className="text-xs text-slate-400">Admin Panel</p>
+        <div className="flex items-center justify-between h-24 px-4 border-b border-slate-700">
+          <div className="w-full flex items-center">
+            <img src="/logo.png" alt="SAGA GYM" className="h-20 w-full object-contain object-left scale-125 origin-left" />
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -91,7 +90,7 @@ export function DashboardLayout({
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
-                    ? "bg-blue-600 text-white"
+                    ? "bg-yellow-400 text-black"
                     : "text-slate-300 hover:bg-slate-700"
                 }`}
               >
@@ -134,7 +133,7 @@ export function DashboardLayout({
               <Bell className="w-6 h-6" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
             </button>
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-black font-semibold">
               AD
             </div>
           </div>

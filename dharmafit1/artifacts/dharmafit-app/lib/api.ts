@@ -98,7 +98,7 @@ function mapRoutine(raw: RawRoutine): Routine {
     id: raw.id,
     name: raw.name,
     userId: raw.athlete_id ?? "",
-    dayOfWeek: raw.dayOfWeek ?? raw.day_of_week ?? 1,
+    dayOfWeek: Number(raw.dayOfWeek ?? raw.day_of_week ?? 1),
     trainerId: raw.trainerId ?? raw.trainer_id ?? "",
     exercises: raw.exercises.map((exercise) => ({
       id: exercise.id,

@@ -60,7 +60,7 @@ export function DataTable<T extends { id?: string | number }>({
                       onClick={() =>
                         onSort(column.key, "asc")
                       }
-                      className="hover:text-blue-400 transition-colors"
+                      className="hover:text-primary transition-colors"
                     >
                       {column.header}
                     </button>

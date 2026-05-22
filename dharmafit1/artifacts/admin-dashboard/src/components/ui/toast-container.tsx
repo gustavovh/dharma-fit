@@ -19,7 +19,7 @@ export function ToastContainer() {
         const bgColors = {
           success: "bg-green-600/20 border-green-600/50 text-green-400",
           error: "bg-red-600/20 border-red-600/50 text-red-400",
-          info: "bg-blue-600/20 border-blue-600/50 text-blue-400",
+          info: "bg-primary/20 border-blue-600/50 text-primary",
           warning: "bg-yellow-600/20 border-yellow-600/50 text-yellow-400",
         };
 
