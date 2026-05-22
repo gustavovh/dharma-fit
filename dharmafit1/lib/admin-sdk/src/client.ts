@@ -223,7 +223,7 @@ export class AdminApiClient {
     if (params?.sort) query.append("sort", params.sort);
     if (params?.order) query.append("order", params.order);
 
-    return this.request<{ data: Release[]; pagination: any }>(
+    return this.request<{ success: boolean; data: Release[]; pagination: any }>(
       `/api/admin/releases?${query.toString()}`
     );
   }
@@ -273,7 +273,7 @@ export class AdminApiClient {
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
 
-    return this.request<{ data: Build[]; pagination: any }>(
+    return this.request<{ success: boolean; data: Build[]; pagination: any }>(
       `/api/admin/builds?${query.toString()}`
     );
   }
@@ -363,7 +363,7 @@ export class AdminApiClient {
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
 
-    return this.request<{ data: AdminUser[]; pagination: any }>(
+    return this.request<{ success: boolean; data: AdminUser[]; pagination: any }>(
       `/api/admin/users?${query.toString()}`
     );
   }
@@ -373,28 +373,28 @@ export class AdminApiClient {
   // ========================================================================
 
   async getAthletes() {
-    return this.request<{ data: Athlete[] }>("/api/admin/gym/athletes");
+    return this.request<{ success: boolean; data: Athlete[] }>("/api/admin/gym/athletes");
   }
 
   async getAthlete(id: string) {
-    return this.request<{ data: Athlete & { measurements: Measurement[] } }>(
+    return this.request<{ success: boolean; data: Athlete & { measurements: Measurement[] } }>(
       `/api/admin/gym/athletes/${id}`
     );
   }
 
   async createAthlete(data: CreateAthlete) {
-    return this.request<{ data: Athlete }>("/api/admin/gym/athletes", {
+    return this.request<{ success: boolean; data: Athlete }>("/api/admin/gym/athletes", {
       method: "POST",
       body: data,
     });
   }
 
   async getAthleteRoutines(id: string) {
-    return this.request<{ data: Routine[] }>(`/api/admin/gym/athletes/${id}/routines`);
+    return this.request<{ success: boolean; data: Routine[] }>(`/api/admin/gym/athletes/${id}/routines`);
   }
 
   async createAthleteRoutine(athleteId: string, data: CreateRoutine) {
-    return this.request<{ data: Routine }>(
+    return this.request<{ success: boolean; data: Routine }>(
       `/api/admin/gym/athletes/${athleteId}/routines`,
       {
         method: "POST",
@@ -404,7 +404,7 @@ export class AdminApiClient {
   }
 
   async addMeasurement(athleteId: string, data: CreateMeasurement) {
-    return this.request<{ data: Measurement }>(
+    return this.request<{ success: boolean; data: Measurement }>(
       `/api/admin/gym/athletes/${athleteId}/measurements`,
       {
         method: "POST",
@@ -414,21 +414,21 @@ export class AdminApiClient {
   }
 
   async getExercises() {
-    return this.request<{ data: Exercise[] }>("/api/admin/gym/exercises");
+    return this.request<{ success: boolean; data: Exercise[] }>("/api/admin/gym/exercises");
   }
 
   async getCoachDashboard() {
-    return this.request<{ data: CoachDashboard }>("/api/admin/gym/coach/dashboard");
+    return this.request<{ success: boolean; data: CoachDashboard }>("/api/admin/gym/coach/dashboard");
   }
 
   async getAthleteObservations(athleteId: string) {
-    return this.request<{ data: AthleteObservation[] }>(
+    return this.request<{ success: boolean; data: AthleteObservation[] }>(
       `/api/admin/gym/athletes/${athleteId}/observations`
     );
   }
 
   async createAthleteObservation(athleteId: string, data: CreateAthleteObservation) {
-    return this.request<{ data: { observation: AthleteObservation } }>(
+    return this.request<{ success: boolean; data: { observation: AthleteObservation } }>(
       `/api/admin/gym/athletes/${athleteId}/observations`,
       {
         method: "POST",
@@ -470,7 +470,7 @@ export class AdminApiClient {
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
 
-    return this.request<{ data: AuditLog[]; pagination: any }>(
+    return this.request<{ success: boolean; data: AuditLog[]; pagination: any }>(
       `/api/admin/monitoring/audit-logs?${query.toString()}`
     );
   }
@@ -481,7 +481,7 @@ export class AdminApiClient {
     if (params?.limit) query.append("limit", String(params.limit));
     if (params?.source) query.append("source", params.source);
 
-    return this.request<{ data: ErrorLog[]; pagination: any }>(
+    return this.request<{ success: boolean; data: ErrorLog[]; pagination: any }>(
       `/api/admin/monitoring/error-logs?${query.toString()}`
     );
   }
@@ -495,7 +495,7 @@ export class AdminApiClient {
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
 
-    return this.request<{ data: Notification[]; pagination: any }>(
+    return this.request<{ success: boolean; data: Notification[]; pagination: any }>(
       `/api/admin/notifications?${query.toString()}`
     );
   }

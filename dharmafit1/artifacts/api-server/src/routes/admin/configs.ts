@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { settings, featureFlags, remoteConfigs } from "@workspace/db/schema";
 import { authenticateAdmin, requirePermission } from "../../middlewares/auth.js";
 import { eq } from "drizzle-orm";
+import { getIO } from "../../lib/socket.js";
 
 export async function createSettingsRoutes(router: Router) {
   // Get all settings
@@ -104,6 +105,8 @@ export async function createSettingsRoutes(router: Router) {
           });
         }
 
+        getIO().emit("setting_updated", updated);
+
         res.json({
           success: true,
           data: updated,
@@ -171,6 +174,8 @@ export async function createSettingsRoutes(router: Router) {
             error: "Feature flag not found",
           });
         }
+
+        getIO().emit("feature_flag_updated", updated);
 
         res.json({
           success: true,
@@ -244,6 +249,8 @@ export async function createSettingsRoutes(router: Router) {
             error: "Config not found",
           });
         }
+
+        getIO().emit("remote_config_updated", updated);
 
         res.json({
           success: true,

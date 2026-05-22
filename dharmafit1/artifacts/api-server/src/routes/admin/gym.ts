@@ -16,6 +16,7 @@ import {
   requireCoachTrainerOr403,
 } from "../../lib/coach-scope.js";
 import bcrypt from "bcrypt";
+import { getIO } from "../../lib/socket.js";
 
 export async function createAdminGymRoutes(router: Router) {
   // COACH OPERATIONS DASHBOARD
@@ -284,6 +285,8 @@ export async function createAdminGymRoutes(router: Router) {
           })
           .returning();
 
+        getIO().emit("athlete_created", newAthlete);
+
         res.status(201).json({
           success: true,
           data: newAthlete,
@@ -345,6 +348,8 @@ export async function createAdminGymRoutes(router: Router) {
             updated_at: new Date(),
           })
           .where(eq(athletes.id, id));
+
+        getIO().emit(`athlete_update_${id}`, { type: "measurement", data: newMeasurement });
 
         res.status(201).json({
           success: true,
@@ -480,6 +485,8 @@ export async function createAdminGymRoutes(router: Router) {
           .values(mappedExercises)
           .returning();
 
+        getIO().emit(`athlete_update_${id}`, { type: "routine", data: newRoutine });
+
         res.status(201).json({
           success: true,
           data: {
@@ -550,6 +557,8 @@ export async function createAdminGymRoutes(router: Router) {
             content: content.trim(),
           })
           .returning();
+
+        getIO().emit(`athlete_update_${id}`, { type: "observation", data: created });
 
         return res.status(201).json({
           success: true,

@@ -18,6 +18,7 @@ import { View } from "react-native";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { initStorage } from "@/lib/storage";
 import { gymApi } from "@/lib/api";
+import { SocketListener } from "@/lib/socket";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -84,6 +85,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <SocketListener />
           <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
             <KeyboardProvider>
               <View style={{ flex: 1, backgroundColor: "#0A0A0B" }}>
