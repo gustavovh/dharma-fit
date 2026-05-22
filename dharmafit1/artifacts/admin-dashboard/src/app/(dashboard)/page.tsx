@@ -115,7 +115,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Coach Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white">Dashboard del Entrenador</h1>
         <p className="text-slate-400 mt-1">Operacion diaria para adherencia y acompanamiento atleta.</p>
       </div>
 
@@ -123,7 +123,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           icon={Users}
-          label="Roster"
+          label="Atletas"
           value={dashboard?.totals.roster || 0}
         />
         <StatCard
@@ -138,12 +138,12 @@ export default function DashboardPage() {
         />
         <StatCard
           icon={RefreshCw}
-          label="Caida Adherencia"
+          label="Caída de Adherencia"
           value={dashboard?.totals.adherence_drop || 0}
         />
         <StatCard
           icon={MessageCircle}
-          label="Requieren Atencion"
+          label="Requieren Atención"
           value={dashboard?.totals.attention_required || 0}
         />
       </div>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
               {sendingFeedback ? "Enviando..." : "Enviar Observacion"}
             </button>
             <p className="text-xs text-slate-400">
-              Quick actions: enviar observacion, recordar sesion y activar seguimiento humano.
+              Acciones rápidas: enviar observación, registrar sesión y activar seguimiento.
             </p>
           </div>
         </div>

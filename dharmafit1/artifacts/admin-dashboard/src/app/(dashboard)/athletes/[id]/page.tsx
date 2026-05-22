@@ -40,6 +40,16 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
   const [observationType, setObservationType] = useState<"Nota" | "Alerta" | "Progreso">("Progreso");
   const [savingObservation, setSavingObservation] = useState(false);
   const [observationError, setObservationError] = useState<string | null>(null);
+  
+  // Measurement state
+  const [showMeasurementModal, setShowMeasurementModal] = useState(false);
+  const [savingMeasurement, setSavingMeasurement] = useState(false);
+  const [measurementError, setMeasurementError] = useState<string | null>(null);
+  const [measurementForm, setMeasurementForm] = useState({
+    weight_kg: "",
+    body_fat_pct: "",
+  });
+
   const [routineForm, setRoutineForm] = useState({
     name: "",
     day_of_week: 1,
@@ -165,12 +175,39 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const handleAddMeasurement = async () => {
+    try {
+      if (!measurementForm.weight_kg) {
+        setMeasurementError("El peso es requerido");
+        return;
+      }
+      setSavingMeasurement(true);
+      setMeasurementError(null);
+
+      await api.addMeasurement(id, {
+        weight_kg: measurementForm.weight_kg,
+        body_fat_pct: measurementForm.body_fat_pct || undefined,
+        date: new Date().toISOString(),
+      });
+
+      const athleteRes = await api.getAthlete(id);
+      setAthlete((athleteRes as any).data || null);
+      
+      setShowMeasurementModal(false);
+      setMeasurementForm({ weight_kg: "", body_fat_pct: "" });
+    } catch (err: any) {
+      setMeasurementError(err?.message || "No se pudo guardar la medición");
+    } finally {
+      setSavingMeasurement(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 animate-pulse">Loading athlete profile...</p>
+          <p className="text-slate-400 animate-pulse">Cargando perfil del atleta...</p>
         </div>
       </div>
     );
@@ -180,8 +217,8 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="p-12 text-center">
         <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl inline-block">
-          <p className="text-red-400 font-bold text-lg">Athlete not found</p>
-          <Link href="/athletes" className="text-blue-400 hover:underline mt-4 inline-block">Back to list</Link>
+          <p className="text-red-400 font-bold text-lg">Atleta no encontrado</p>
+          <Link href="/athletes" className="text-blue-400 hover:underline mt-4 inline-block">Volver a la lista</Link>
         </div>
       </div>
     );
@@ -228,13 +265,16 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-blue-500" />
-                  Progress Tracking
+                  Progreso del Atleta
                 </h3>
-                <p className="text-sm text-slate-500">Weight history over time</p>
+                <p className="text-sm text-slate-500">Historial de peso a lo largo del tiempo</p>
               </div>
-              <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-slate-700">
+              <button 
+                onClick={() => setShowMeasurementModal(true)}
+                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-slate-700"
+              >
                 <Plus className="w-4 h-4" />
-                Add Entry
+                Añadir Medición
               </button>
             </div>
             
@@ -283,25 +323,25 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl backdrop-blur-sm">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Weight</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Peso</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-white">{athlete.weight_kg || "--"}</span>
                 <span className="text-xs text-slate-500 font-bold">kg</span>
               </div>
             </div>
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl backdrop-blur-sm">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Body Fat</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Grasa Corporal</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-white">{athlete.body_fat_pct || "--"}</span>
                 <span className="text-xs text-slate-500 font-bold">%</span>
               </div>
             </div>
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl backdrop-blur-sm">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Status</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Estado</p>
               <span className="text-sm font-bold text-green-400 capitalize">{athlete.plan_status}</span>
             </div>
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl backdrop-blur-sm">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Joined</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Inscripción</p>
               <span className="text-sm font-bold text-white">{new Date(athlete.created_at).toLocaleDateString()}</span>
             </div>
           </div>
@@ -313,17 +353,17 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <Dumbbell className="w-5 h-5 text-purple-500" />
-                Routines
+                Rutinas
               </h3>
-              <button className="text-blue-400 hover:text-blue-300 text-sm font-bold">Manage All</button>
+              <button className="text-blue-400 hover:text-blue-300 text-sm font-bold">Administrar</button>
             </div>
 
             <div className="space-y-4 flex-1 overflow-y-auto pr-2">
               {routines.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-500 italic">No routines assigned yet</p>
+                  <p className="text-slate-500 italic">No hay rutinas asignadas</p>
                   <button className="mt-4 bg-blue-600/20 text-blue-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-500/30">
-                    Create Routine
+                    Crear Rutina
                   </button>
                 </div>
               ) : (
@@ -331,7 +371,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                   <div key={r.id} className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl hover:border-blue-500/50 transition-all group">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-bold text-white group-hover:text-blue-400 transition-colors">{r.name}</p>
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Day {r.day_of_week}</span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Día {r.day_of_week}</span>
                     </div>
                     <div className="space-y-2">
                       {r.exercises.slice(0, 3).map((ex) => (
@@ -342,7 +382,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                       ))}
                       {r.exercises.length > 3 && (
                         <p className="text-[10px] text-slate-600 font-bold italic pt-1">
-                          + {r.exercises.length - 3} more exercises
+                          + {r.exercises.length - 3} ejercicios más
                         </p>
                       )}
                     </div>
@@ -352,11 +392,11 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
             </div>
             
             <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20">
-              Update Training Plan
+              Actualizar Plan de Entrenamiento
             </button>
 
             <div className="mt-6 border-t border-slate-700/60 pt-6 space-y-4">
-              <h4 className="text-sm font-black tracking-widest uppercase text-slate-400">Assign New Routine</h4>
+              <h4 className="text-sm font-black tracking-widest uppercase text-slate-400">Asignar Nueva Rutina</h4>
 
               {routineError && (
                 <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-400 text-xs font-semibold">
@@ -367,7 +407,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
               <input
                 value={routineForm.name}
                 onChange={(e) => setRoutineForm((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Routine name"
+                placeholder="Nombre de la rutina"
                 className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
               />
 
@@ -376,13 +416,13 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 onChange={(e) => setRoutineForm((prev) => ({ ...prev, day_of_week: Number(e.target.value) }))}
                 className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-blue-500"
               >
-                <option value={1}>Monday</option>
-                <option value={2}>Tuesday</option>
-                <option value={3}>Wednesday</option>
-                <option value={4}>Thursday</option>
-                <option value={5}>Friday</option>
-                <option value={6}>Saturday</option>
-                <option value={7}>Sunday</option>
+                <option value={1}>Lunes</option>
+                <option value={2}>Martes</option>
+                <option value={3}>Miércoles</option>
+                <option value={4}>Jueves</option>
+                <option value={5}>Viernes</option>
+                <option value={6}>Sábado</option>
+                <option value={7}>Domingo</option>
               </select>
 
               <div className="space-y-2">
@@ -393,7 +433,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                       onChange={(e) => updateRoutineExercise(index, "exercise_id", e.target.value)}
                       className="col-span-6 bg-slate-800/70 border border-slate-700 rounded-xl py-2 px-2 text-xs text-white"
                     >
-                      <option value="">Select exercise</option>
+                      <option value="">Seleccionar ejercicio</option>
                       {exercises.map((exercise) => (
                         <option key={exercise.id} value={exercise.id}>
                           {exercise.name}
@@ -406,7 +446,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                       min={1}
                       onChange={(e) => updateRoutineExercise(index, "sets", e.target.value)}
                       className="col-span-2 bg-slate-800/70 border border-slate-700 rounded-xl py-2 px-2 text-xs text-white"
-                      placeholder="Sets"
+                      placeholder="Series"
                     />
                     <input
                       value={row.reps}
@@ -431,7 +471,7 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 onClick={addRoutineExercise}
                 className="w-full py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700 hover:bg-slate-700"
               >
-                Add Exercise Row
+                Añadir Ejercicio
               </button>
 
               <button
@@ -440,14 +480,14 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 disabled={savingRoutine}
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40 text-white text-sm font-bold"
               >
-                {savingRoutine ? "Saving..." : "Assign Routine"}
+                {savingRoutine ? "Guardando..." : "Asignar Rutina"}
               </button>
             </div>
 
             <div className="mt-8 border-t border-slate-700/60 pt-6 space-y-4">
               <h4 className="text-sm font-black tracking-widest uppercase text-slate-400 flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                Coach Feedback
+                Feedback del Entrenador
               </h4>
 
               {observationError && (
@@ -500,6 +540,62 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+
+      {showMeasurementModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-sm w-full relative shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-6">Añadir Medición</h3>
+            
+            {measurementError && (
+              <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-400 text-xs font-semibold mb-4">
+                {measurementError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Peso (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={measurementForm.weight_kg}
+                  onChange={(e) => setMeasurementForm(prev => ({ ...prev, weight_kg: e.target.value }))}
+                  placeholder="Ej: 75.5"
+                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Grasa Corporal (%) (Opcional)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={measurementForm.body_fat_pct}
+                  onChange={(e) => setMeasurementForm(prev => ({ ...prev, body_fat_pct: e.target.value }))}
+                  placeholder="Ej: 15.2"
+                  className="w-full bg-slate-800/70 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => setShowMeasurementModal(false)}
+                className="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold hover:bg-slate-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAddMeasurement}
+                disabled={savingMeasurement}
+                className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {savingMeasurement ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

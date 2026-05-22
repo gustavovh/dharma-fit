@@ -97,7 +97,7 @@ export default function Home() {
             <LinearGradient colors={colors.gradientHero} style={[styles.heroCard, { borderColor: colors.border }]}> 
               <View style={styles.heroTopRow}>
                 <View>
-                  <Text style={[styles.heroLabel, { color: colors.primary }]}>DAILY GOAL</Text>
+                  <Text style={[styles.heroLabel, { color: colors.primary }]}>META DIARIA</Text>
                   <Text style={[styles.heroTitle, { color: colors.foreground }]}>{todayRoutine?.name || "Activa tu recuperación"}</Text>
                   <Text style={[styles.heroSubtitle, { color: colors.mutedForeground }]}>Diseñado para mantener consistencia, foco y carga progresiva.</Text>
                 </View>
@@ -111,7 +111,7 @@ export default function Home() {
               </View>
 
               <View style={[styles.heroCTA, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-                <Text style={[styles.heroCTAText, { color: colors.foreground }]}>{todayRoutine ? "Start workout" : "Revisar agenda"}</Text>
+                <Text style={[styles.heroCTAText, { color: colors.foreground }]}>{todayRoutine ? "Comenzar sesión" : "Revisar agenda"}</Text>
                 <AppIcon name="arrow-forward-outline" size={18} active />
               </View>
             </LinearGradient>
