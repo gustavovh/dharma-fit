@@ -251,6 +251,18 @@ export const gymApi = {
       }
     ),
 
+  forgotPassword: (email: string) =>
+    apiFetch<ApiEnvelope<{ message: string }>>("/api/atleta/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, newPassword: string) =>
+    apiFetch<ApiEnvelope<{ message: string }>>("/api/atleta/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
+    }),
+
   getMe: async () => {
     const response = await apiFetch<ApiEnvelope<RawUser>>("/api/atleta/me");
     return {

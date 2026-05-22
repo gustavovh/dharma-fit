@@ -184,3 +184,16 @@ export const observations = pgTable("observations", {
     table.date
   ),
 }));
+
+// Password Reset Tokens
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  athlete_id: uuid("athlete_id").notNull().references(() => athletes.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  expires_at: timestamp("expires_at", { withTimezone: true }).notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  athleteIdx: index("password_reset_tokens_athlete_id_idx").on(table.athlete_id),
+  tokenIdx: index("password_reset_tokens_token_idx").on(table.token),
+}));
+

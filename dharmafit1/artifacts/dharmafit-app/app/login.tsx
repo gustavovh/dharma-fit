@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/hooks/useColors";
 import { gymApi } from "@/lib/api";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { AppIcon } from "@/components/AppIcon";
 
 export default function LoginScreen() {
   const colors = useColors();
@@ -14,6 +15,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("atleta123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -60,14 +62,26 @@ export default function LoginScreen() {
           />
 
           <Text style={[styles.label, { color: colors.primary, marginTop: 20 }]}>CONTRASEÑA</Text>
-          <TextInput
-            style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.secondary }]}
-            placeholder="••••••••"
-            placeholderTextColor={colors.mutedForeground}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.secondary }]}
+              placeholder="••••••••"
+              placeholderTextColor={colors.mutedForeground}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <Pressable 
+              onPress={() => setShowPassword(!showPassword)} 
+              style={styles.eyeIcon}
+            >
+              <AppIcon name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} active />
+            </Pressable>
+          </View>
+
+          <Pressable onPress={() => router.push("/forgot-password")} style={styles.forgotPassword}>
+            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>¿Olvidaste tu contraseña?</Text>
+          </Pressable>
 
           {error && (
             <Text style={styles.errorText}>{error}</Text>
@@ -135,4 +149,9 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "white", fontSize: 16, fontWeight: "800", letterSpacing: 1 },
   errorText: { color: "#ff4444", fontSize: 12, marginTop: 15, textAlign: "center", fontWeight: "600" },
+  passwordContainer: { position: "relative", justifyContent: "center" },
+  passwordInput: { paddingRight: 50 },
+  eyeIcon: { position: "absolute", right: 15, height: "100%", justifyContent: "center" },
+  forgotPassword: { alignItems: "flex-end", marginTop: 12 },
+  forgotPasswordText: { fontSize: 12, fontWeight: "600" },
 });

@@ -12,6 +12,8 @@ import {
 import { jwtSign, jwtSignRefreshToken } from "../../middlewares/jwt.js";
 import { authenticateAthlete } from "../../middlewares/auth.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { passwordResetTokens } from "@workspace/db/schema";
 
 export async function createAthleteRoutes(router: Router) {
   // Athlete Login
@@ -78,6 +80,80 @@ export async function createAthleteRoutes(router: Router) {
         success: false,
         error: "Internal server error",
       });
+    }
+  });
+
+  // Forgot Password
+  router.post("/atleta/auth/forgot-password", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ success: false, error: "El email es requerido" });
+      }
+
+      const [athlete] = await db.select().from(athletes).where(eq(athletes.email, email));
+      if (!athlete) {
+        // Obfuscate si existe o no por seguridad, pero devolvemos success
+        return res.json({ success: true, message: "Si el correo existe, enviaremos un enlace." });
+      }
+
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 3600000); // 1 hora
+
+      await db.insert(passwordResetTokens).values({
+        athlete_id: athlete.id,
+        token,
+        expires_at: expiresAt,
+      });
+
+      console.log(`\n==============================================`);
+      console.log(`[PASSWORD RECOVERY LINK GENERATED]`);
+      console.log(`Email: ${email}`);
+      console.log(`Token: ${token}`);
+      console.log(`==============================================\n`);
+
+      res.json({
+        success: true,
+        message: "Si el correo existe, enviaremos un enlace.",
+      });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
+    }
+  });
+
+  // Reset Password
+  router.post("/atleta/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        return res.status(400).json({ success: false, error: "Token y nueva contraseña son requeridos" });
+      }
+
+      const [resetToken] = await db
+        .select()
+        .from(passwordResetTokens)
+        .where(eq(passwordResetTokens.token, token));
+
+      if (!resetToken || resetToken.expires_at < new Date()) {
+        return res.status(400).json({ success: false, error: "El token es inválido o ha expirado" });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      await db.update(athletes)
+        .set({ password_hash: passwordHash, updated_at: new Date() })
+        .where(eq(athletes.id, resetToken.athlete_id));
+
+      await db.delete(passwordResetTokens).where(eq(passwordResetTokens.id, resetToken.id));
+
+      res.json({
+        success: true,
+        message: "Contraseña actualizada exitosamente",
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ success: false, error: "Error interno del servidor" });
     }
   });
 
