@@ -113,7 +113,9 @@ function mapRoutine(raw: RawRoutine): Routine {
       media: exercise.media?.url
         ? {
             type: (exercise.media.type ?? "image") as "image" | "video",
-            url: exercise.media.url,
+            url: exercise.media.url.startsWith("http") && exercise.media.url.includes("localhost")
+              ? exercise.media.url.replace(/localhost:\d+/, BASE_URL.replace("http://", "").replace("https://", ""))
+              : exercise.media.url,
           }
         : undefined,
     })),
