@@ -408,6 +408,7 @@ export async function createAdminGymRoutes(router: Router) {
             const exercisesInRoutine = await db
               .select({
                 id: routineExercises.id,
+                exercise_id: routineExercises.exercise_id,
                 name: exercises.name,
                 muscle_group: exercises.muscle_group,
                 sets: routineExercises.sets,
@@ -519,6 +520,150 @@ export async function createAdminGymRoutes(router: Router) {
       }
     }
   );
+
+  // Update a routine
+  router.put(
+    "/admin/gym/athletes/:id/routines/:routineId",
+    authenticateAdmin,
+    requirePermission("edit_user"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { id, routineId } = req.params;
+        const { name, day_of_week, exercises: routineItems } = req.body;
+
+        if (!name || day_of_week === undefined || !Array.isArray(routineItems)) {
+          return res.status(400).json({
+            success: false,
+            error: "name, day_of_week and exercises list are required",
+          });
+        }
+
+        const day = Number(day_of_week);
+        if (Number.isNaN(day) || day < 1 || day > 7) {
+          return res.status(400).json({
+            success: false,
+            error: "day_of_week must be between 1 and 7",
+          });
+        }
+
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
+
+        // Check if the routine exists and belongs to this athlete
+        const [existingRoutine] = await db
+          .select()
+          .from(routines)
+          .where(and(
+            eq(routines.id, routineId),
+            eq(routines.athlete_id, id),
+            eq(routines.trainer_id, trainerId)
+          ));
+
+        if (!existingRoutine) {
+          return res.status(404).json({
+            success: false,
+            error: "Routine not found",
+          });
+        }
+
+        // Update the routine metadata
+        const [updatedRoutine] = await db
+          .update(routines)
+          .set({
+            name,
+            day_of_week: day,
+          })
+          .where(eq(routines.id, routineId))
+          .returning();
+
+        // Delete existing exercises associated with the routine
+        await db
+          .delete(routineExercises)
+          .where(eq(routineExercises.routine_id, routineId));
+
+        // Insert updated exercises
+        let createdExercises: any[] = [];
+        if (routineItems.length > 0) {
+          const mappedExercises = routineItems.map((item: any, index: number) => ({
+            routine_id: routineId,
+            exercise_id: item.exercise_id,
+            sets: Number(item.sets) || 3,
+            reps: String(item.reps || "12"),
+            weight_kg: item.weight_kg ? String(item.weight_kg) : null,
+            rest_seconds: item.rest_seconds ? Number(item.rest_seconds) : null,
+            order: item.order !== undefined ? Number(item.order) : index,
+            name_override: item.name_override || null,
+          }));
+
+          createdExercises = await db
+            .insert(routineExercises)
+            .values(mappedExercises)
+            .returning();
+        }
+
+        getIO().emit(`athlete_update_${id}`, { type: "routine", data: updatedRoutine });
+
+        res.json({
+          success: true,
+          data: {
+            ...updatedRoutine,
+            exercises: createdExercises,
+          },
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error("Failed to update routine:", error);
+        res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
+  // Delete a routine
+  router.delete(
+    "/admin/gym/athletes/:id/routines/:routineId",
+    authenticateAdmin,
+    requirePermission("edit_user"),
+    async (req: Request, res: Response) => {
+      try {
+        const trainerId = await requireCoachTrainerOr403(req, res);
+        if (!trainerId) return;
+
+        const { id, routineId } = req.params;
+
+        if (!(await requireCoachAthleteOr404(id, trainerId, res))) return;
+
+        const [deletedRoutine] = await db
+          .delete(routines)
+          .where(and(
+            eq(routines.id, routineId),
+            eq(routines.athlete_id, id),
+            eq(routines.trainer_id, trainerId)
+          ))
+          .returning();
+
+        if (!deletedRoutine) {
+          return res.status(404).json({
+            success: false,
+            error: "Routine not found",
+          });
+        }
+
+        getIO().emit(`athlete_update_${id}`, { type: "routine_delete", data: { id: routineId } });
+
+        res.json({
+          success: true,
+          message: "Routine deleted successfully",
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error("Failed to delete routine:", error);
+        res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
 
   // OBSERVATIONS / FEEDBACK
   router.get(

@@ -12,6 +12,10 @@ import {
   Weight,
   Dumbbell,
   MessageSquare,
+  Trash2,
+  Edit2,
+  Save,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminApi } from "@/hooks/useApi";
@@ -58,9 +62,139 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
     day_of_week: 1,
     exercises: [{ exercise_id: "", sets: 3, reps: "12" }],
   });
+
+  // Manage and Edit Routines state
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  const [editRoutineForm, setEditRoutineForm] = useState<{
+    id: string;
+    name: string;
+    day_of_week: number;
+    exercises: Array<{ exercise_id: string; sets: number; reps: string; weight_kg?: string }>;
+  }>({
+    id: "",
+    name: "",
+    day_of_week: 1,
+    exercises: [{ exercise_id: "", sets: 3, reps: "12" }],
+  });
+  const [savingEditRoutine, setSavingEditRoutine] = useState(false);
+  const [deletingRoutineId, setDeletingRoutineId] = useState<string | null>(null);
+  const [editRoutineError, setEditRoutineError] = useState<string | null>(null);
+
+  // Update Plan feedback state
+  const [updatingPlan, setUpdatingPlan] = useState(false);
+  const [planSuccess, setPlanSuccess] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const api = useAdminApi();
+
+  const updateEditRoutineExercise = (index: number, field: string, value: string) => {
+    setEditRoutineForm((prev) => {
+      const nextItems = [...prev.exercises];
+      const current = { ...nextItems[index] } as any;
+      current[field] = field === "sets" ? Number(value) : value;
+      nextItems[index] = current;
+      return { ...prev, exercises: nextItems };
+    });
+  };
+
+  const addEditRoutineExercise = () => {
+    setEditRoutineForm((prev) => ({
+      ...prev,
+      exercises: [...prev.exercises, { exercise_id: "", sets: 3, reps: "12" }],
+    }));
+  };
+
+  const removeEditRoutineExercise = (index: number) => {
+    setEditRoutineForm((prev) => ({
+      ...prev,
+      exercises: prev.exercises.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleUpdateRoutine = async () => {
+    try {
+      setEditRoutineError(null);
+      setSavingEditRoutine(true);
+
+      if (!editRoutineForm.name.trim()) {
+        setEditRoutineError("El nombre de la rutina es requerido");
+        return;
+      }
+
+      if (editRoutineForm.exercises.some((x) => !x.exercise_id)) {
+        setEditRoutineError("Selecciona un ejercicio para cada fila");
+        return;
+      }
+
+      await api.updateAthleteRoutine(id, editRoutineForm.id, {
+        name: editRoutineForm.name,
+        day_of_week: Number(editRoutineForm.day_of_week),
+        exercises: editRoutineForm.exercises.map((ex, idx) => ({
+          exercise_id: ex.exercise_id,
+          sets: Number(ex.sets),
+          reps: ex.reps,
+          weight_kg: ex.weight_kg || undefined,
+          order: idx,
+        })),
+      } as any);
+
+      // Refetch
+      const routinesRes = await api.getAthleteRoutines(id);
+      setRoutines((routinesRes as any).data || []);
+      setEditingRoutine(null);
+      
+      // Auto-trigger sync notification
+      setPlanSuccess(true);
+      setTimeout(() => setPlanSuccess(false), 3000);
+    } catch (err: any) {
+      setEditRoutineError(err?.message || "No se pudo actualizar la rutina");
+    } finally {
+      setSavingEditRoutine(false);
+    }
+  };
+
+  const handleDeleteRoutine = async (routineId: string) => {
+    try {
+      setEditRoutineError(null);
+      setDeletingRoutineId(routineId);
+
+      await api.deleteAthleteRoutine(id, routineId);
+
+      // Refetch
+      const routinesRes = await api.getAthleteRoutines(id);
+      setRoutines((routinesRes as any).data || []);
+      
+      if (editingRoutine?.id === routineId) {
+        setEditingRoutine(null);
+      }
+
+      // Auto-trigger sync notification
+      setPlanSuccess(true);
+      setTimeout(() => setPlanSuccess(false), 3000);
+    } catch (err: any) {
+      setEditRoutineError(err?.message || "No se pudo eliminar la rutina");
+    } finally {
+      setDeletingRoutineId(null);
+    }
+  };
+
+  const handleUpdatePlan = async () => {
+    try {
+      setUpdatingPlan(true);
+      const routinesRes = await api.getAthleteRoutines(id);
+      setRoutines((routinesRes as any).data || []);
+      
+      setPlanSuccess(true);
+      setTimeout(() => setPlanSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingPlan(false);
+    }
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -482,7 +616,12 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 <Dumbbell className="w-5 h-5 text-purple-500" />
                 Rutinas
               </h3>
-              <button className="text-primary hover:text-blue-300 text-sm font-bold">Administrar</button>
+              <button 
+                onClick={() => setShowManageModal(true)}
+                className="text-primary hover:text-blue-300 text-sm font-bold transition-colors"
+              >
+                Administrar
+              </button>
             </div>
 
             <div className="space-y-4 flex-1 overflow-y-auto pr-2">
@@ -518,8 +657,22 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
             
-            <button className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary/20">
-              Actualizar Plan de Entrenamiento
+            <button 
+              onClick={handleUpdatePlan}
+              disabled={updatingPlan}
+              className={`w-full mt-6 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-primary-foreground ${
+                planSuccess 
+                  ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
+                  : 'bg-primary hover:bg-primary/90 shadow-primary/20'
+              }`}
+            >
+              {updatingPlan ? (
+                <span>Actualizando...</span>
+              ) : planSuccess ? (
+                <span>✓ ¡Plan de Entrenamiento Actualizado!</span>
+              ) : (
+                <span>Actualizar Plan de Entrenamiento</span>
+              )}
             </button>
 
             <div className="mt-6 border-t border-slate-700/60 pt-6 space-y-4">
@@ -720,6 +873,271 @@ export default function AthleteDetailPage({ params }: { params: Promise<{ id: st
                 {savingMeasurement ? "Guardando..." : "Guardar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showManageModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto relative shadow-2xl space-y-6">
+            <button
+              onClick={() => {
+                setShowManageModal(false);
+                setEditingRoutine(null);
+              }}
+              className="absolute top-6 right-6 text-slate-400 hover:text-white p-2 hover:bg-slate-800 rounded-xl transition-all border border-transparent hover:border-slate-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {!editingRoutine ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <Dumbbell className="w-6 h-6 text-purple-500" />
+                    Administrar Rutinas
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Edita o elimina las rutinas asignadas a {athlete.name}
+                  </p>
+                </div>
+
+                {editRoutineError && (
+                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl text-red-400 text-sm font-semibold">
+                    {editRoutineError}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {routines.length === 0 ? (
+                    <div className="text-center py-12 bg-slate-800/20 border border-slate-800/80 rounded-2xl">
+                      <p className="text-slate-500 italic">No hay rutinas asignadas a este atleta</p>
+                    </div>
+                  ) : (
+                    routines.map((r) => (
+                      <div
+                        key={r.id}
+                        className="bg-slate-800/30 border border-slate-800 p-5 rounded-2xl flex items-center justify-between hover:border-slate-700 transition-all group"
+                      >
+                        <div className="space-y-1">
+                          <p className="font-bold text-white text-lg group-hover:text-primary transition-colors">
+                            {r.name}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-slate-400">
+                            <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/50 uppercase font-black tracking-wider text-[10px]">
+                              Día {r.day_of_week}
+                            </span>
+                            <span>•</span>
+                            <span>{r.exercises.length} Ejercicios</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingRoutine(r);
+                              setEditRoutineForm({
+                                id: r.id,
+                                name: r.name,
+                                day_of_week: r.day_of_week,
+                                exercises: r.exercises.map((ex) => ({
+                                  exercise_id: ex.exercise_id,
+                                  sets: ex.sets,
+                                  reps: ex.reps,
+                                  weight_kg: ex.weight_kg || "",
+                                })),
+                              });
+                            }}
+                            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 rounded-xl transition-all border border-slate-700"
+                            title="Editar Rutina"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`¿Estás seguro de que deseas eliminar la rutina "${r.name}"?`)) {
+                                handleDeleteRoutine(r.id);
+                              }
+                            }}
+                            disabled={deletingRoutineId === r.id}
+                            className="p-2.5 bg-red-950/20 hover:bg-red-900/30 text-red-400 hover:text-red-300 border border-red-900/30 rounded-xl transition-all disabled:opacity-50"
+                            title="Eliminar Rutina"
+                          >
+                            {deletingRoutineId === r.id ? (
+                              <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => {
+                      setShowManageModal(false);
+                    }}
+                    className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all border border-slate-700"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest">
+                    <span>Editar Rutina</span>
+                    <span>/</span>
+                    <span className="text-slate-400 font-normal">{editingRoutine.name}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mt-1">Configurar Rutina</h3>
+                </div>
+
+                {editRoutineError && (
+                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl text-red-400 text-sm font-semibold">
+                    {editRoutineError}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Nombre de la rutina
+                    </label>
+                    <input
+                      value={editRoutineForm.name}
+                      onChange={(e) => setEditRoutineForm((prev) => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ej: Piernas A"
+                      className="w-full bg-slate-800/70 border border-slate-700 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Día de la semana
+                    </label>
+                    <select
+                      value={editRoutineForm.day_of_week}
+                      onChange={(e) => setEditRoutineForm((prev) => ({ ...prev, day_of_week: Number(e.target.value) }))}
+                      className="w-full bg-slate-800/70 border border-slate-700 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:border-primary"
+                    >
+                      <option value={1}>Lunes (Día 1)</option>
+                      <option value={2}>Martes (Día 2)</option>
+                      <option value={3}>Miércoles (Día 3)</option>
+                      <option value={4}>Jueves (Día 4)</option>
+                      <option value={5}>Viernes (Día 5)</option>
+                      <option value={6}>Sábado (Día 6)</option>
+                      <option value={7}>Domingo (Día 7)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      Ejercicios de la rutina
+                    </label>
+
+                    <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1">
+                      {editRoutineForm.exercises.map((row, index) => (
+                        <div key={index} className="grid grid-cols-12 gap-3 items-center bg-slate-800/20 border border-slate-850 p-3 rounded-2xl">
+                          <div className="col-span-6">
+                            <select
+                              value={row.exercise_id}
+                              onChange={(e) => updateEditRoutineExercise(index, "exercise_id", e.target.value)}
+                              className="w-full bg-slate-850 border border-slate-700 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-primary"
+                            >
+                              <option value="">Seleccionar ejercicio</option>
+                              {exercises.map((exercise) => (
+                                <option key={exercise.id} value={exercise.id}>
+                                  {exercise.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <input
+                              value={row.sets}
+                              type="number"
+                              min={1}
+                              onChange={(e) => updateEditRoutineExercise(index, "sets", e.target.value)}
+                              className="w-full bg-slate-855 border border-slate-700 rounded-xl py-2 px-2 text-xs text-center text-white focus:outline-none focus:border-primary"
+                              placeholder="Series"
+                            />
+                          </div>
+
+                          <div className="col-span-2">
+                            <input
+                              value={row.reps}
+                              onChange={(e) => updateEditRoutineExercise(index, "reps", e.target.value)}
+                              className="w-full bg-slate-855 border border-slate-700 rounded-xl py-2 px-2 text-xs text-center text-white focus:outline-none focus:border-primary"
+                              placeholder="Reps"
+                            />
+                          </div>
+
+                          <div className="col-span-2 flex items-center gap-2">
+                            <input
+                              value={row.weight_kg || ""}
+                              onChange={(e) => updateEditRoutineExercise(index, "weight_kg", e.target.value)}
+                              className="w-full bg-slate-855 border border-slate-700 rounded-xl py-2 px-1 text-[10px] text-center text-white focus:outline-none focus:border-primary"
+                              placeholder="Kg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditRoutineExercise(index)}
+                              className="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded-lg transition-colors"
+                              disabled={editRoutineForm.exercises.length === 1}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={addEditRoutineExercise}
+                      className="w-full py-2.5 rounded-xl bg-slate-800/80 text-slate-200 text-xs font-bold border border-slate-700 hover:bg-slate-750 transition-colors"
+                    >
+                      + Añadir Ejercicio
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-slate-800">
+                  <button
+                    onClick={() => {
+                      setEditingRoutine(null);
+                      setEditRoutineError(null);
+                    }}
+                    className="flex-1 py-3.5 rounded-2xl bg-slate-800 text-white font-bold hover:bg-slate-750 transition-colors border border-slate-700"
+                  >
+                    Atrás
+                  </button>
+                  <button
+                    onClick={handleUpdateRoutine}
+                    disabled={savingEditRoutine}
+                    className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold hover:bg-primary/95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {savingEditRoutine ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        <span>Guardando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Guardar Cambios</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -36,3 +36,5 @@ services:
         value: "https://dharma-fit.onrender.com"
       - key: NEXT_PUBLIC_API_URL
         value: "https://dharma-fit.onrender.com"
+
+         

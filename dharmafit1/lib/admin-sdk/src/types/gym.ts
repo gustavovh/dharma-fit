@@ -49,6 +49,7 @@ export type CreateExercise = z.infer<typeof CreateExerciseSchema>;
 
 export const RoutineExerciseSchema = z.object({
   id: z.string().uuid(),
+  exercise_id: z.string().uuid(),
   name: z.string(),
   muscle_group: z.string().nullable().optional(),
   sets: z.number(),

@@ -13,6 +13,87 @@ export default function ExercisesPage() {
   const [search, setSearch] = useState("");
   const api = useAdminApi();
 
+  const getExerciseImage = (name: string, customUrl?: string | null) => {
+    if (customUrl && customUrl.trim().startsWith("http")) {
+      return customUrl;
+    }
+    
+    const n = name.toLowerCase();
+    
+    // Chest / Pecho
+    if (
+      n.includes("pecho") || 
+      n.includes("banca") || 
+      n.includes("aperturas") || 
+      n.includes("cruces") || 
+      n.includes("flexiones")
+    ) {
+      return "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop";
+    }
+    
+    // Legs / Piernas
+    if (
+      n.includes("sentadilla") || 
+      n.includes("pierna") || 
+      n.includes("prensa") || 
+      n.includes("zancada") || 
+      n.includes("estocada") || 
+      n.includes("talones") ||
+      n.includes("femoral")
+    ) {
+      return "https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=400&auto=format&fit=crop";
+    }
+    
+    // Back / Espalda
+    if (
+      n.includes("muerto") || 
+      n.includes("espalda") || 
+      n.includes("remo") || 
+      n.includes("dominadas") || 
+      n.includes("jalón") || 
+      n.includes("lat pull")
+    ) {
+      return "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=400&auto=format&fit=crop";
+    }
+    
+    // Shoulders / Hombros
+    if (
+      n.includes("hombro") || 
+      n.includes("militar") || 
+      n.includes("laterales") || 
+      n.includes("pájaros") ||
+      n.includes("vuelos")
+    ) {
+      return "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=400&auto=format&fit=crop";
+    }
+    
+    // Arms / Brazos
+    if (
+      n.includes("brazo") || 
+      n.includes("bíceps") || 
+      n.includes("biceps") || 
+      n.includes("tríceps") || 
+      n.includes("triceps") || 
+      n.includes("fondos") ||
+      n.includes("curl")
+    ) {
+      return "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=400&auto=format&fit=crop";
+    }
+    
+    // Core / Abdomen
+    if (
+      n.includes("plancha") || 
+      n.includes("crunch") || 
+      n.includes("abdomen") || 
+      n.includes("abdominal") || 
+      n.includes("core")
+    ) {
+      return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop";
+    }
+
+    return "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop";
+  };
+
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -185,31 +266,28 @@ export default function ExercisesPage() {
             <p className="text-slate-400">No exercises found in the library</p>
           </div>
         ) : (
-          filteredExercises.map((ex) => (
-            <div key={ex.id} className="bg-slate-900/50 border border-slate-800 rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all group flex flex-col">
-              {/* Media Preview Placeholder */}
-              <div className="h-40 bg-slate-800 relative flex items-center justify-center overflow-hidden">
-                {ex.video_url ? (
-                  <>
-                    <img 
-                      src={ex.video_url} 
-                      alt={ex.name} 
-                      className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105 duration-500 z-0" 
-                      onError={(e) => {
-                        // fallback if it's not a direct image URL (e.g. YouTube video or broken link)
-                        (e.target as HTMLElement).style.display = 'none';
-                      }} 
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors z-10" />
-                  </>
-                ) : null}
-                <Dumbbell className="w-12 h-12 text-slate-700 group-hover:scale-110 transition-transform z-20" />
-                <div className="absolute top-4 left-4 z-20">
-                  <span className="bg-slate-900/80 backdrop-blur-md text-slate-300 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-slate-700">
-                    {ex.muscle_group || "General"}
-                  </span>
+          filteredExercises.map((ex) => {
+            const imageUrl = getExerciseImage(ex.name, ex.video_url);
+            return (
+              <div key={ex.id} className="bg-slate-900/50 border border-slate-800 rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all group flex flex-col">
+                {/* Media Preview Placeholder */}
+                <div className="h-40 bg-slate-800 relative flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={imageUrl} 
+                    alt={ex.name} 
+                    className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105 duration-500 z-0" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop";
+                    }} 
+                  />
+                  <div className="absolute inset-0 bg-black/25 group-hover:bg-black/45 transition-colors z-10" />
+                  <Dumbbell className="w-12 h-12 text-slate-700/30 group-hover:scale-110 transition-transform z-20" />
+                  <div className="absolute top-4 left-4 z-20">
+                    <span className="bg-slate-900/80 backdrop-blur-md text-slate-300 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-slate-700">
+                      {ex.muscle_group || "General"}
+                    </span>
+                  </div>
                 </div>
-              </div>
               
               <div className="p-6 flex-1 flex flex-col">
                 <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">{ex.name}</h3>
@@ -238,7 +316,8 @@ export default function ExercisesPage() {
                 </div>
               </div>
             </div>
-          ))
+          );
+        })
         )}
       </div>
 

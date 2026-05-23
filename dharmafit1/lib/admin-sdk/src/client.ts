@@ -70,7 +70,7 @@ export class AdminApiClient {
   private getCurrentToken(): string | null {
     if (this.token) return this.token;
 
-    if (typeof window !== "undefined") {
+    if (typeof globalThis !== "undefined" && typeof (globalThis as any).window !== "undefined") {
       return localStorage.getItem("access_token");
     }
 
@@ -112,7 +112,7 @@ export class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          if (typeof window !== "undefined") {
+          if (typeof globalThis !== "undefined" && typeof (globalThis as any).window !== "undefined") {
             const refreshToken = localStorage.getItem("refresh_token");
 
             if (refreshToken) {
@@ -403,6 +403,26 @@ export class AdminApiClient {
       }
     );
   }
+
+  async updateAthleteRoutine(athleteId: string, routineId: string, data: CreateRoutine) {
+    return this.request<{ success: boolean; data: Routine }>(
+      `/api/admin/gym/athletes/${athleteId}/routines/${routineId}`,
+      {
+        method: "PUT",
+        body: data,
+      }
+    );
+  }
+
+  async deleteAthleteRoutine(athleteId: string, routineId: string) {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/admin/gym/athletes/${athleteId}/routines/${routineId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
 
   async addMeasurement(athleteId: string, data: CreateMeasurement) {
     return this.request<{ success: boolean; data: Measurement }>(
