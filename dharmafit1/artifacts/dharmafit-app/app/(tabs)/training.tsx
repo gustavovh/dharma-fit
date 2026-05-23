@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 
 import { useColors } from "@/hooks/useColors";
 import { AppHeader } from "@/components/RoleHeader";
@@ -16,31 +17,63 @@ import { ActivityIndicator } from "react-native";
 
 export default function Training() {
   const colors = useColors();
+  const router = useRouter();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [selectedDay, setSelectedDay] = useState<number>(((new Date().getDay() + 6) % 7) + 1);
+  const [activeRoutineId, setActiveRoutineId] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<RoutineExercise | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await gymApi.getRoutines();
-        if (res.success) {
-          setRoutines(res.data);
-          // If the current day has no routine but they have other routines, maybe default to the first one?
-          // No, default to today. If there's no routine, it shows rest day.
+  const fetchRoutines = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    try {
+      const res = await gymApi.getRoutines();
+      if (res.success) {
+        setRoutines(res.data);
+        
+        // Auto-select active routine ID
+        const currentSelectedDay = ((new Date().getDay() + 6) % 7) + 1;
+        const matchingRoutines = res.data.filter((r: any) => r.dayOfWeek === currentSelectedDay);
+        if (matchingRoutines.length > 0) {
+          setActiveRoutineId(matchingRoutines[0].id);
         }
-      } catch (err) {
-        console.error("Failed to fetch routines:", err);
-      } finally {
-        setLoading(false);
       }
-    })();
+    } catch (err: any) {
+      console.error("Failed to fetch routines:", err);
+      const errMsg = err.message || "";
+      if (errMsg.includes("Authentication required") || errMsg.includes("expired") || errMsg.includes("401") || errMsg.includes("Unauthorized")) {
+        router.replace("/login");
+      }
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoutines(true);
   }, []);
 
-  const activeRoutine = routines.find(r => r.dayOfWeek === selectedDay);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRoutines(false);
+    setRefreshing(false);
+  };
+
+  const handleSelectDay = (dayNum: number) => {
+    setSelectedDay(dayNum);
+    const routinesForDay = routines.filter(r => r.dayOfWeek === dayNum);
+    if (routinesForDay.length > 0) {
+      setActiveRoutineId(routinesForDay[0].id);
+    } else {
+      setActiveRoutineId(null);
+    }
+  };
+
+  const routinesForSelectedDay = routines.filter(r => r.dayOfWeek === selectedDay);
+  const activeRoutine = routines.find(r => r.id === activeRoutineId) || routinesForSelectedDay[0];
 
   const toggleExercise = async (exerciseId: string) => {
     if (!activeRoutine) return;
@@ -103,12 +136,15 @@ export default function Training() {
     <LinearGradient colors={colors.gradientBackground} style={styles.screen}>
       <AppHeader
         title="Entrenamiento"
-        subtitle={activeRoutine?.name || "Cargando..."}
+        subtitle={loading ? "Cargando..." : (activeRoutine?.name || "Día de descanso")}
         initials="AC"
       />
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
       >
         <LinearGradient colors={colors.gradientHero} style={[styles.routineHero, { borderColor: colors.border }]}> 
           <View style={styles.heroHeader}>
@@ -143,7 +179,7 @@ export default function Training() {
             return (
               <Pressable
                 key={day}
-                onPress={() => setSelectedDay(dayNum)}
+                onPress={() => handleSelectDay(dayNum)}
                 style={[
                   styles.dayButton,
                   { backgroundColor: isActive ? colors.secondary : colors.card, borderColor: isActive ? colors.primary : colors.border, shadowColor: isActive ? colors.primary : colors.shadow }
@@ -157,7 +193,7 @@ export default function Training() {
           })}
         </View>
 
-        <SectionHeader title="Ejercicios" actionLabel="Hoy" onAction={() => setSelectedDay(((new Date().getDay() + 6) % 7) + 1)} />
+        <SectionHeader title="Ejercicios" actionLabel="Hoy" onAction={() => handleSelectDay(((new Date().getDay() + 6) % 7) + 1)} />
         
         {activeRoutine?.exercises.map((exercise, index) => (
           <Animated.View
@@ -174,8 +210,8 @@ export default function Training() {
 
         <SectionHeader title="Otras rutinas" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
-          {routines.filter(r => r.dayOfWeek !== selectedDay).map((r) => (
-            <Pressable key={r.id} onPress={() => setSelectedDay(r.dayOfWeek)}>
+          {routines.filter(r => r.id !== activeRoutine?.id).map((r) => (
+            <Pressable key={r.id} onPress={() => { setSelectedDay(r.dayOfWeek); setActiveRoutineId(r.id); }}>
               <Card style={styles.miniCard} variant="gold">
                 <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold", fontSize: 16 }}>{r.name}</Text>
                 <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 6 }}>

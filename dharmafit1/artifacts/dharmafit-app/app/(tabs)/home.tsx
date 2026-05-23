@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions, RefreshControl } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -26,26 +26,42 @@ export default function Home() {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchHomeData = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    try {
+      const [profileRes, routinesRes, measurementsRes] = await Promise.all([
+        gymApi.getMe(),
+        gymApi.getRoutines(),
+        gymApi.getMeasurements(),
+      ]);
+
+      if (profileRes.success) setUser(profileRes.data);
+      if (routinesRes.success) setRoutines(routinesRes.data);
+      if (measurementsRes.success) {
+        setMeasurements(measurementsRes.data.slice().reverse());
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch home data:", err);
+      const errMsg = err.message || "";
+      if (errMsg.includes("Authentication required") || errMsg.includes("expired") || errMsg.includes("401") || errMsg.includes("Unauthorized")) {
+        router.replace("/login");
+      }
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const profileRes = await gymApi.getMe();
-        const routinesRes = await gymApi.getRoutines();
-        const measurementsRes = await gymApi.getMeasurements();
-
-        if (profileRes.success) setUser(profileRes.data);
-        if (routinesRes.success) setRoutines(routinesRes.data);
-        if (measurementsRes.success) {
-          setMeasurements(measurementsRes.data.slice().reverse());
-        }
-      } catch (err) {
-        console.error("Failed to fetch home data:", err);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchHomeData(true);
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchHomeData(false);
+    setRefreshing(false);
+  };
 
   const chartWidth = Math.max(220, width - 96);
   const quickActions = [
@@ -91,7 +107,13 @@ export default function Home() {
         initials={user?.avatar || "AC"}
         showLogo
       />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+      >
         <Animated.View entering={FadeInDown.duration(350)}>
           <Pressable onPress={() => router.push("/(tabs)/training")}>
             <LinearGradient colors={colors.gradientHero} style={[styles.heroCard, { borderColor: colors.border }]}> 

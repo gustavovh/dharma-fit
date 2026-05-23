@@ -3,7 +3,8 @@ import { Measurement, Notification, Routine, User } from "@/types";
 import { enqueueSyncAction, flushSyncQueue, getSyncQueueLength } from "@/lib/syncQueue";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? (__DEV__ ? "http://localhost:3001" : "");
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 20000; // Increased to 20 seconds to robustly support Render cold starts
+
 
 if (!BASE_URL) {
   throw new Error("EXPO_PUBLIC_API_URL is required for production builds");
@@ -200,6 +201,10 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     : {};
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Clear storage keys on unauthorized access to force re-login instead of staying stuck
+      AsyncStorage.multiRemove(["atleta_token", "atleta_id", "atleta_user"]).catch(() => {});
+    }
     throw new Error(data.error || "API Error");
   }
 
