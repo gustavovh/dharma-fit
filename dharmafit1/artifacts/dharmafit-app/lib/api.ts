@@ -113,9 +113,17 @@ function mapRoutine(raw: RawRoutine): Routine {
       media: exercise.media?.url
         ? {
             type: (exercise.media.type ?? "image") as "image" | "video",
-            url: exercise.media.url.startsWith("http") && exercise.media.url.includes("localhost")
-              ? exercise.media.url.replace(/localhost:\d+/, BASE_URL.replace("http://", "").replace("https://", ""))
-              : exercise.media.url,
+            url: (() => {
+              let url = exercise.media.url;
+              if (url.startsWith("http") && url.includes("localhost")) {
+                url = url.replace(/localhost:\d+/, BASE_URL.replace("http://", "").replace("https://", ""));
+              }
+              // Force HTTPS for non-localhost/non-IP URLs to bypass mobile cleartext blocks (especially on iOS/Android for Render domains)
+              if (url.startsWith("http:") && !url.includes("localhost") && !url.includes("127.0.0.1") && !url.includes("192.168.")) {
+                url = url.replace(/^http:/i, "https:");
+              }
+              return url;
+            })(),
           }
         : undefined,
     })),

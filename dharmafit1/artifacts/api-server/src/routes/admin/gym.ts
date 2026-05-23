@@ -776,7 +776,7 @@ export async function createAdminGymRoutes(router: Router) {
         fs.writeFileSync(filePath, buffer);
 
         // Get base server URL
-        const protocol = req.protocol;
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
         const host = req.get("host");
         const fileUrl = `${protocol}://${host}/uploads/${uniqueFilename}`;
 
