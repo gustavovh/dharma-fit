@@ -1,4 +1,6 @@
 import { Router, type Request, type Response } from "express";
+import fs from "fs";
+import path from "path";
 import { db } from "@workspace/db";
 import {
   athletes,
@@ -743,6 +745,52 @@ export async function createAdminGymRoutes(router: Router) {
   );
 
   // EXERCISES
+  // Upload an exercise media file (image/gif)
+  router.post(
+    "/admin/gym/upload",
+    authenticateAdmin,
+    async (req: Request, res: Response) => {
+      try {
+        const { filename, file } = req.body;
+        if (!filename || !file) {
+          return res.status(400).json({ success: false, error: "filename and base64 file are required" });
+        }
+
+        // Check if uploads folder exists, if not, create it
+        const uploadsDir = path.join(process.cwd(), "uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        // Clean up base64 header if present
+        const base64Data = file.replace(/^data:image\/\w+;base64,/, "").replace(/^data:video\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+
+        // Generate unique filename to avoid collision
+        const ext = path.extname(filename) || ".png";
+        const base = path.basename(filename, ext).replace(/[^a-zA-Z0-9]/g, "-");
+        const uniqueFilename = `${base}-${Date.now()}${ext}`;
+        const filePath = path.join(uploadsDir, uniqueFilename);
+
+        // Write file
+        fs.writeFileSync(filePath, buffer);
+
+        // Get base server URL
+        const protocol = req.protocol;
+        const host = req.get("host");
+        const fileUrl = `${protocol}://${host}/uploads/${uniqueFilename}`;
+
+        return res.status(201).json({
+          success: true,
+          url: fileUrl,
+        });
+      } catch (error) {
+        console.error("Failed to upload file:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+      }
+    }
+  );
+
   // List all available exercises
   router.get(
     "/admin/gym/exercises",

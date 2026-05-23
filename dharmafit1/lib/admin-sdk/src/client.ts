@@ -458,6 +458,14 @@ export class AdminApiClient {
     });
   }
 
+  async uploadFile(filename: string, base64Data: string) {
+    return this.request<{ success: boolean; url: string }>("/api/admin/gym/upload", {
+      method: "POST",
+      body: { filename, file: base64Data },
+    });
+  }
+
+
   async getCoachDashboard() {
     return this.request<{ success: boolean; data: CoachDashboard }>("/api/admin/gym/coach/dashboard");
   }

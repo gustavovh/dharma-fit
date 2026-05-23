@@ -107,6 +107,44 @@ export default function ExercisesPage() {
   const [formVideoUrl, setFormVideoUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setFormError(null);
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+        try {
+          const res = await api.uploadFile(file.name, base64Data);
+          if (res.success && res.url) {
+            setFormVideoUrl(res.url);
+          } else {
+            setFormError("No se pudo cargar el archivo");
+          }
+        } catch (err: any) {
+          setFormError(err.message || "Error al subir el archivo al servidor");
+        } finally {
+          setUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        setFormError("Error al leer el archivo local");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      setFormError("Error al procesar el archivo");
+      setUploading(false);
+    }
+  };
+
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -380,18 +418,40 @@ export default function ExercisesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">URL de Imagen o Video del Ejercicio</label>
-            <div className="relative">
-              <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                value={formVideoUrl}
-                onChange={(e) => setFormVideoUrl(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-all text-sm"
-                placeholder="Ej. https://images.unsplash.com/... o enlace de video"
-              />
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Imagen / GIF del Ejercicio (URL o Archivo)</label>
+            <div className="flex gap-3 items-center">
+              <div className="relative flex-1">
+                <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={formVideoUrl}
+                  onChange={(e) => setFormVideoUrl(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-all text-sm"
+                  placeholder="Ej. https://images.unsplash.com/... o subir archivo"
+                />
+              </div>
+              <label className="shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-2xl px-4 py-3 font-semibold text-sm cursor-pointer transition-colors relative flex items-center justify-center min-w-[120px]">
+                {uploading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span>Subir GIF/Img</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*,image/gif"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </label>
             </div>
+            {formVideoUrl && formVideoUrl.startsWith("http") && (
+              <div className="mt-3 border border-slate-800 rounded-2xl overflow-hidden h-28 w-full relative bg-slate-950 flex items-center justify-center">
+                <img src={formVideoUrl} alt="Preview" className="max-h-full max-w-full object-contain" />
+              </div>
+            )}
           </div>
+
 
           <div className="flex gap-3 justify-end pt-4 border-t border-slate-700">
             <button
@@ -475,18 +535,40 @@ export default function ExercisesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">URL de Imagen o Video del Ejercicio</label>
-            <div className="relative">
-              <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                value={formVideoUrl}
-                onChange={(e) => setFormVideoUrl(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-all text-sm"
-                placeholder="Ej. https://images.unsplash.com/... o enlace de video"
-              />
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Imagen / GIF del Ejercicio (URL o Archivo)</label>
+            <div className="flex gap-3 items-center">
+              <div className="relative flex-1">
+                <Video className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={formVideoUrl}
+                  onChange={(e) => setFormVideoUrl(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-all text-sm"
+                  placeholder="Ej. https://images.unsplash.com/... o subir archivo"
+                />
+              </div>
+              <label className="shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-2xl px-4 py-3 font-semibold text-sm cursor-pointer transition-colors relative flex items-center justify-center min-w-[120px]">
+                {uploading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span>Subir GIF/Img</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*,image/gif"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </label>
             </div>
+            {formVideoUrl && formVideoUrl.startsWith("http") && (
+              <div className="mt-3 border border-slate-800 rounded-2xl overflow-hidden h-28 w-full relative bg-slate-950 flex items-center justify-center">
+                <img src={formVideoUrl} alt="Preview" className="max-h-full max-w-full object-contain" />
+              </div>
+            )}
           </div>
+
 
           <div className="flex gap-3 justify-end pt-4 border-t border-slate-700">
             <button
