@@ -756,33 +756,22 @@ export async function createAdminGymRoutes(router: Router) {
           return res.status(400).json({ success: false, error: "filename and base64 file are required" });
         }
 
-        // Check if uploads folder exists, if not, create it
-        const uploadsDir = path.join(process.cwd(), "uploads");
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
+        // Return the base64 data URI directly for persistent storage in DB!
+        // This ensures the uploaded GIFs/images survive ephemeral disk wipes on Render/container restarts.
+        let base64Uri = file;
+        if (!base64Uri.startsWith("data:")) {
+          const ext = path.extname(filename).toLowerCase();
+          let mime = "image/png";
+          if (ext === ".gif") mime = "image/gif";
+          else if (ext === ".jpg" || ext === ".jpeg") mime = "image/jpeg";
+          else if (ext === ".mp4") mime = "video/mp4";
+          
+          base64Uri = `data:${mime};base64,${base64Uri}`;
         }
-
-        // Clean up base64 header if present
-        const base64Data = file.replace(/^data:image\/\w+;base64,/, "").replace(/^data:video\/\w+;base64,/, "");
-        const buffer = Buffer.from(base64Data, "base64");
-
-        // Generate unique filename to avoid collision
-        const ext = path.extname(filename) || ".png";
-        const base = path.basename(filename, ext).replace(/[^a-zA-Z0-9]/g, "-");
-        const uniqueFilename = `${base}-${Date.now()}${ext}`;
-        const filePath = path.join(uploadsDir, uniqueFilename);
-
-        // Write file
-        fs.writeFileSync(filePath, buffer);
-
-        // Get base server URL
-        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-        const host = req.get("host");
-        const fileUrl = `${protocol}://${host}/uploads/${uniqueFilename}`;
 
         return res.status(201).json({
           success: true,
-          url: fileUrl,
+          url: base64Uri,
         });
       } catch (error) {
         console.error("Failed to upload file:", error);

@@ -106,7 +106,7 @@ export const exercises = pgTable("exercises", {
   description: text("description"),
   default_sets: integer("default_sets"),
   default_reps: varchar("default_reps", { length: 50 }),
-  video_url: varchar("video_url", { length: 255 }),
+  video_url: text("video_url"),
 });
 
 // Routines
@@ -137,7 +137,7 @@ export const routineExercises = pgTable("routine_exercises", {
   weight_kg: varchar("weight_kg", { length: 100 }),
   rest_seconds: integer("rest_seconds"),
   notes: jsonb("notes").$type<string[]>().default([]),
-  media_url: varchar("media_url", { length: 255 }),
+  media_url: text("media_url"),
   media_type: varchar("media_type", { length: 20 }), // image, video
   order: integer("order").notNull().default(0),
   completed: boolean("completed").notNull().default(false),
